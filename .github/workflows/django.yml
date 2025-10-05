@@ -34,5 +34,4 @@ jobs:
           find . -maxdepth 3 -type f -name "manage.py"
 
       - name: Run tests (Django)
-        working-directory: a2_market
         run: python manage.py test
