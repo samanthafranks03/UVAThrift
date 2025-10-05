@@ -109,4 +109,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 .dmypy.json
-dmypy.json
+dmypy.json.venv/
+venv/
+__pycache__/
+*.pyc
+staticfiles/
