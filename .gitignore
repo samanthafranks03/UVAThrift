@@ -115,3 +115,6 @@ __pycache__/
 *.pyc
 staticfiles/
 .venv/
+
+# IDE
+.idea/
