@@ -22,9 +22,10 @@ def auth_receiver(request):
 
     try:
         user_data = id_token.verify_oauth2_token(
-            token, requests.Request(), os.environ['GOOGLE_OAUTH_CLIENT_ID']
+            token, requests.Request(), audience=os.environ['GOOGLE_OAUTH_CLIENT_ID']
         )
-    except ValueError:
+    except ValueError as e:
+        print(e)
         return HttpResponse(status=403)
 
     # TODO: Save user to database here
