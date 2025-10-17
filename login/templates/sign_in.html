@@ -61,7 +61,7 @@
             <img src="{{ request.session.user_data.picture }}" alt="User picture"/>
             <p>Click here to <a href="/market">View the Market</a></p>
             <p>Click here to <a href="/login/sign-out">Sign Out</a></p>
-            <p>Click here to <a href="/login">View your Profile</a></p>
+            <p>Click here to <a href="{{ request.session.user_URL }}">View your Profile</a></p>
         </div>
     {% else %}
         <div>

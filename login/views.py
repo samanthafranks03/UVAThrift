@@ -28,13 +28,15 @@ def auth_receiver(request):
         print(e)
         return HttpResponse(status=403)
 
-    # TODO: Save user to database here
 
     from users.models import User
     # Does user exist in database yet?
     if User.objects.filter(email=user_data['email']).exists():
         # User exists
         print('User already exists')
+        user = User.objects.get(email=user_data['email'])
+        user.is_new_user = False
+        user.save()
     else:
         # Create new user
         user = User(
@@ -46,6 +48,7 @@ def auth_receiver(request):
         user.save()
 
     request.session['user_data'] = user_data
+    request.session['user_URL'] = user.get_absolute_url()
 
     return redirect('sign_in')
 

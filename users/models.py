@@ -1,5 +1,6 @@
-from django.db import models
 import hashlib
+from django.db import models
+from django.urls import reverse
 
 
 class User(models.Model):
@@ -17,6 +18,9 @@ class User(models.Model):
 
     def make_post(self):
         print("Making a post placeholder!\n")
+
+    def get_absolute_url(self):
+        return reverse("user-profile", kwargs={"hashed_email": self.hashed_email})
 
     def save(self, *args, **kwargs):
         if not self.hashed_email:
