@@ -29,6 +29,15 @@ def auth_receiver(request):
         return HttpResponse(status=403)
 
     # TODO: Save user to database here
+
+    from .models import User
+    user = User(
+        name=user_data.get('given_name'),
+        email=user_data.get('email'),
+        picture_url=user_data.get('picture')
+    )
+    user.save()
+
     request.session['user_data'] = user_data
 
     return redirect('sign_in')
