@@ -59,7 +59,7 @@
         <p>Welcome, {{ request.session.user_data.given_name }} </p>
         <p>Your email is {{ request.session.user_data.email }}</p>
         <img src="{{ request.session.user_data.picture }}" alt="User picture" />
-        <p>Click here to <a href="/sign-out">Sign out</a></p>
+        <p>Click here to <a href="/login/sign-out">Sign out</a></p>
       </div>
       {% else %}
       <div>
