@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UVA Thrifting</title>
+</head>
+<body>
+    <h1>Welcome to the Home Page!</h1>
+    <div class="container">
+      {% if request.session.user_data %}
+      <div>
+        <p>Welcome, {{ request.session.user_data.given_name }} </p>
+        <p>You are currently viewing the market as: {{ request.session.user_data.email }}</p>
+        <img src="{{ request.session.user_data.picture }}" alt="User picture" />
+        <p>Click here to <a href="/login/sign-out">Sign out</a></p>
+      </div>
+      {% else %}
+      <div>
+        <p>Hello Guest User! You are currently not signed in.</p>
+        <p>Click here to <a href="/login">sign in.</a></p>
+      </div>
+      {% endif %}
+    </div>
+</body>
+</html>

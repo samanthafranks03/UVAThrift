@@ -60,6 +60,7 @@ if _csrf_origins:
 
 INSTALLED_APPS = [
     "login.apps.LoginConfig",
+    "market.apps.MarketConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
