@@ -1,90 +1,91 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8"/>
     <title>Login Page</title>
     <script src="https://accounts.google.com/gsi/client" async></script>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-      }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
 
-      .container {
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        text-align: center;
-      }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
 
-      img {
-        border-radius: 50%;
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        margin-top: 10px;
-      }
+        img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin-top: 10px;
+        }
 
-      p {
-        color: #333;
-        margin: 10px 0;
-      }
+        p {
+            color: #333;
+            margin: 10px 0;
+        }
 
-      a {
-        color: #007bff;
-        text-decoration: none;
-        font-weight: bold;
-      }
+        a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
 
-      a:hover {
-        text-decoration: underline;
-      }
+        a:hover {
+            text-decoration: underline;
+        }
 
-      .g_id_signin {
-        margin-top: 20px;
-      }
+        .g_id_signin {
+            margin-top: 20px;
+        }
     </style>
-  </head>
+</head>
 
-  <body>
-    <div class="container">
-      {% if request.session.user_data %}
-      <div>
-        <p>Welcome, {{ request.session.user_data.given_name }} </p>
-        <p>Your email is {{ request.session.user_data.email }}</p>
-        <img src="{{ request.session.user_data.picture }}" alt="User picture" />
-        <p>Click here to <a href="/market">View the Market</a></p>
-        <p>Click here to <a href="/login/sign-out">Sign out</a></p>
-      </div>
-      {% else %}
-      <div>
-        <p>Hello!</p>
-        <p>Click below to sign in with Google</p>
-        <!--Paste the generated HTML code for Google sign in button goes here-->
-        <div id="g_id_onload"
-         data-client_id="80201954223-neadcdrnd263v5kujks6c5vdm3d660su.apps.googleusercontent.com"
-         data-context="signin"
-         data-ux_mode="popup"
-         data-login_uri="http://localhost:8000/login/auth-receiver"
-         data-auto_prompt="false">
+<body>
+<div class="container">
+    {% if request.session.user_data %}
+        <div>
+            <p>Welcome, {{ request.session.user_data.given_name }} </p>
+            <p>You have signed in as {{ request.session.user_data.email }}</p>
+            <img src="{{ request.session.user_data.picture }}" alt="User picture"/>
+            <p>Click here to <a href="/market">View the Market</a></p>
+            <p>Click here to <a href="/login/sign-out">Sign Out</a></p>
+            <p>Click here to <a href="/login">View your Profile</a></p>
         </div>
+    {% else %}
+        <div>
+            <p>Hello!</p>
+            <p>Click below to sign in with Google</p>
+            <!--Paste the generated HTML code for Google sign in button goes here-->
+            <div id="g_id_onload"
+                 data-client_id="80201954223-neadcdrnd263v5kujks6c5vdm3d660su.apps.googleusercontent.com"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-login_uri="http://localhost:8000/login/auth-receiver"
+                 data-auto_prompt="false">
+            </div>
 
-        <div class="g_id_signin"
-         data-type="standard"
-         data-shape="rectangular"
-         data-theme="outline"
-         data-text="signin_with"
-         data-size="large"
-         data-logo_alignment="left">
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-size="large"
+                 data-logo_alignment="left">
+            </div>
         </div>
-      </div>
-      {% endif %}
-    </div>
-  </body>
+    {% endif %}
+</div>
+</body>
 </html>

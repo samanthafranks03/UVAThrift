@@ -30,13 +30,20 @@ def auth_receiver(request):
 
     # TODO: Save user to database here
 
-    from .models import User
-    user = User(
-        name=user_data.get('given_name'),
-        email=user_data.get('email'),
-        picture_url=user_data.get('picture')
-    )
-    user.save()
+    from users.models import User
+    # Does user exist in database yet?
+    if User.objects.filter(email=user_data['email']).exists():
+        # User exists
+        print('User already exists')
+    else:
+        # Create new user
+        user = User(
+            name=user_data.get('given_name'),
+            email=user_data.get('email'),
+            picture_url=user_data.get('picture'),
+            is_new_user = True
+        )
+        user.save()
 
     request.session['user_data'] = user_data
 
