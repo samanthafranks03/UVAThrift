@@ -47,8 +47,18 @@ def auth_receiver(request):
         )
         user.save()
 
+    # List of admin email addresses
+    ADMIN_EMAILS = [
+        'heba.ahmed.ha1215@gmail.com',
+        'shofu360@gmail.com',
+        'samantha.franks70@gmail.com',
+        'nadellasrikar@gmail.com',
+        'daniel815jimenez@gmail.com'
+    ]
+    
     request.session['user_data'] = user_data
     request.session['user_URL'] = user.get_absolute_url()
+    request.session['is_admin'] = user_data['email'] in ADMIN_EMAILS
 
     return redirect('sign_in')
 

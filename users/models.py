@@ -15,6 +15,8 @@ class User(models.Model):
     # Moderation
     is_flagged = models.BooleanField(default=False)
     is_new_user = models.BooleanField(default=False)
+    # check for admin
+    is_admin = models.BooleanField(default=False)
 
     def make_post(self):
         print("Making a post placeholder!\n")
