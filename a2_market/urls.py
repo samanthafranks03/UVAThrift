@@ -23,4 +23,6 @@ urlpatterns = [
     path('market/', include('market.urls')),
     path('login/', include('login.urls')),
     path('users/', include('users.urls')),
+    path('posts/', include('posts.urls')),
+
 ]

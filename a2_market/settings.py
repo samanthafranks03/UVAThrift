@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "login.apps.LoginConfig",
     "market.apps.MarketConfig",
     "users.apps.UsersConfig",
+    "posts.apps.PostsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

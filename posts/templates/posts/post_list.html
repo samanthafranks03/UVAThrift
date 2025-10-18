@@ -1,0 +1,27 @@
+<h2>Community Feed</h2>
+
+{% if request.session.user_data %}
+<form method="post" action="{% url 'create_post' %}">
+  {% csrf_token %}
+  <textarea
+    name="content"
+    rows="3"
+    placeholder="Write something..."
+    required
+  ></textarea
+  ><br />
+  <button type="submit">Post</button>
+</form>
+{% endif %}
+
+<hr />
+
+{% for post in posts %}
+<div style="margin-bottom: 1rem">
+  <strong>{{ post.author.name }}</strong> ({{ post.author.email }})<br />
+  {{ post.content }}<br />
+  <small>{{ post.created_at }}</small>
+</div>
+{% empty %}
+<p>No posts yet.</p>
+{% endfor %}

@@ -1,17 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>UVA Thrifting</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Welcome to the Home Page!</h1>
+
     <div class="container">
       {% if request.session.user_data %}
       <div>
-        <p>Welcome, {{ request.session.user_data.given_name }} </p>
-        <p>You are currently viewing the market as: {{ request.session.user_data.email }}</p>
-        <img src="{{ request.session.user_data.picture }}" alt="User picture" />
+        <p>Welcome, {{ request.session.user_data.given_name }}</p>
+        <p>
+          You are currently viewing the market as: {{
+          request.session.user_data.email }}
+        </p>
+        <img
+          src="{{ request.session.user_data.picture }}"
+          alt="User picture"
+          width="100"
+        />
         <p>Click here to <a href="/login/sign-out">Sign out</a></p>
       </div>
       {% else %}
@@ -21,5 +29,39 @@
       </div>
       {% endif %}
     </div>
-</body>
+
+    <hr />
+
+    {% if can_post %}
+    <form method="post" action="/posts/create/">
+      {% csrf_token %}
+      <textarea
+        name="content"
+        rows="3"
+        cols="50"
+        placeholder="Write something..."
+        required
+      ></textarea
+      ><br />
+      <button type="submit">Post</button>
+    </form>
+    {% elif user %}
+    <p style="color: red">You are banned and cannot post.</p>
+    {% else %}
+    <p><a href="/login/">Sign in</a> to make a post.</p>
+    {% endif %}
+
+    <hr />
+
+    <h2>Recent Posts</h2>
+    {% for post in posts %}
+    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px">
+      <strong>{{ post.author.name }}</strong>
+      <p>{{ post.content }}</p>
+      <small>Posted on {{ post.created_at }}</small>
+    </div>
+    {% empty %}
+    <p>No posts yet. Be the first to post something!</p>
+    {% endfor %}
+  </body>
 </html>
