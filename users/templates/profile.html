@@ -52,6 +52,11 @@
     <h1>{{ object.name }}</h1>
     <p>{{ object.bio }}</p>
     <p>{{ object.interests }}</p>
+    {% if request.session.is_admin %}
+    <p>
+    <a href="/login/admin-panel/" style="background:#ffd700;color:#000;padding:8px 16px;border-radius:5px;font-weight:bold;text-decoration:none;">Admin Control Panel</a>
+    </p>
+    {% endif %}
 </div>
 </body>
 </html>

@@ -66,3 +66,49 @@ def auth_receiver(request):
 def sign_out(request):
     del request.session['user_data']
     return redirect('sign_in')
+
+########## Admin Views ##########
+
+# feature that allows admin to view all users and ban users
+from users.models import User
+from django.views.decorators.csrf import csrf_protect
+
+@csrf_protect
+def admin_panel(request):
+    # Only allow admins
+    if not request.session.get('is_admin', False):
+        return HttpResponse('Forbidden', status=403)
+    users = User.objects.all()
+    return render(request, 'admin_panel.html', {'users': users})
+
+
+@csrf_protect
+def ban_user(request):
+    # Only allow admins
+    if not request.session.get('is_admin', False):
+        return HttpResponse('Forbidden', status=403)
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            user.is_flagged = True
+            user.save()
+        except User.DoesNotExist:
+            pass
+    return redirect('admin_panel')
+
+
+@csrf_protect
+def unban_user(request):
+    # Only allow admins
+    if not request.session.get('is_admin', False):
+        return HttpResponse('Forbidden', status=403)
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            user.is_flagged = False
+            user.save()
+        except User.DoesNotExist:
+            pass
+    return redirect('admin_panel')
