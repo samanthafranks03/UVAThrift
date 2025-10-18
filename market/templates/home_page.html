@@ -12,8 +12,7 @@
       <div>
         <p>Welcome, {{ request.session.user_data.given_name }}</p>
         <p>
-          You are currently viewing the market as: {{
-          request.session.user_data.email }}
+          You are currently viewing the market as: {% if request.session.is_admin %}admin{% else %}user{% endif %}
         </p>
         <img
           src="{{ request.session.user_data.picture }}"
