@@ -42,7 +42,39 @@
         }
 
         a:hover {
-            text-decoration: underline;
+            text-decoration: none;
+        }
+        
+        .yellow-btn {
+            display: inline-block;
+            background-color: #ffd700;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+            margin: 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        .yellow-btn:hover {
+            background-color: #ffcf33;
+        }
+
+        /* .myreviews-btn {
+            display: inline-block;
+            background-color: #ffd700;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+            margin: 10px;
+            transition: background-color 0.2s ease;
+        } */
+
+        .myreviews-btn:hover {
+            background-color: #ffcf33;
         }
     </style>
 </head>
@@ -61,6 +93,12 @@
     <p>
     <a href="/login/admin-panel/" style="background:#ffd700;color:#000;padding:8px 16px;border-radius:5px;font-weight:bold;text-decoration:none;">Admin Control Panel</a>
     </p>
+    {% endif %}
+
+    {% if request.session.user_data %}
+        <a href="{% url 'messaging:inbox' %}" class="yellow-btn">Messages</a>
+        <a href="/reviews/inbox/" class="yellow-btn">Reviews</a>
+        <a href="/posts/inbox/" class="yellow-btn">Posts</a>
     {% endif %}
 </div>
 </body>

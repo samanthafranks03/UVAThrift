@@ -59,10 +59,12 @@ if _csrf_origins:
 # ------------------------------------------------------------------------------
 
 INSTALLED_APPS = [
+    'daphne',
     "login.apps.LoginConfig",
     "market.apps.MarketConfig",
     "users.apps.UsersConfig",
     "posts.apps.PostsConfig",
+    "messaging.apps.MessagingConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -104,6 +106,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "a2_market.wsgi.application"
+
+#for da messaging
+ASGI_APPLICATION = "a2_market.asgi.application"
 
 # ------------------------------------------------------------------------------
 # Database
