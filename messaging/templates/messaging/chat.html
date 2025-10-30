@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chat with {{ other_user.username }}</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: #fafafa;
+      }
+
+      /* Header */
+      .chat-header {
+        position: sticky;
+        top: 0;
+        background: linear-gradient(135deg, #0095f6, #0056b3);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        z-index: 2;
+      }
+
+      .chat-header button {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 5px 10px;
+        transition: opacity 0.2s ease;
+      }
+      .chat-header button:hover {
+        opacity: 0.8;
+      }
+      .chat-header h3 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 600;
+        flex-grow: 1;
+        text-align: center;
+      }
+
+      /* Messages */
+      .chat-messages {
+        flex-grow: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .message {
+        max-width: 70%;
+        margin-bottom: 10px;
+        padding: 10px 14px;
+        border-radius: 18px;
+        font-size: 15px;
+        line-height: 1.4;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        word-wrap: break-word;
+        position: relative;
+      }
+
+      .message.sent {
+        align-self: flex-end;
+        background-color: #0095f6;
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+
+      .message.received {
+        align-self: flex-start;
+        background-color: #e9e9eb;
+        color: black;
+        border-bottom-left-radius: 4px;
+      }
+
+      .timestamp {
+        font-size: 11px;
+        color: #666;
+        margin-top: 4px;
+        text-align: right;
+      }
+
+      /* Input bar */
+      .chat-input {
+        display: flex;
+        align-items: center;
+        padding: 10px 14px;
+        background-color: white;
+        border-top: 1px solid #ddd;
+      }
+
+      .chat-input input {
+        flex-grow: 1;
+        border: 1px solid #ccc;
+        border-radius: 20px;
+        padding: 10px 15px;
+        font-size: 15px;
+        outline: none;
+        transition: border 0.2s ease;
+      }
+
+      .chat-input input:focus {
+        border-color: #0095f6;
+      }
+
+      .chat-input button {
+        background-color: #0095f6;
+        border: none;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        margin-left: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .chat-input button:hover {
+        background-color: #0078c4;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="chat-header">
+      <button onclick="window.history.back()">←</button>
+      <h3>{{ other_user.username }}</h3>
+      <div style="width: 32px"></div>
+      <!-- spacer -->
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chatBox">
+      {% for msg in messages %}
+      <div
+        class="message {% if msg.author == request.user %}sent{% else %}received{% endif %}"
+      >
+        {{ msg.content }}
+        <div class="timestamp">{{ msg.created_at|date:"M d, H:i" }}</div>
+      </div>
+      {% empty %}
+      <p style="text-align: center; color: #888">
+        No messages yet — start the conversation!
+      </p>
+      {% endfor %}
+    </div>
+
+    <!-- Input -->
+    <form
+      class="chat-input"
+      method="POST"
+      action="{% url 'messaging:send-message' other_user.username %}"
+    >
+      {% csrf_token %}
+      <input
+        type="text"
+        name="content"
+        placeholder="Message {{ other_user.username }}..."
+        autocomplete="off"
+        required
+      />
+      <button type="submit">Send</button>
+    </form>
+
+    <script>
+      // Auto-scroll to bottom when page loads
+      const chatBox = document.getElementById("chatBox");
+      chatBox.scrollTop = chatBox.scrollHeight;
+    </script>
+  </body>
+</html>
