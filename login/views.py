@@ -1,3 +1,9 @@
+# REFERENCES:
+# Google Sign-In w/ Django App: https://tomdekan.com/articles/google-sign-in
+#   * Use: Overall layout and template for integrating Google Sign-In for the project
+# Copilot
+#   * Use: Fixing unknown errors, additional Django reference, HTML assistance
+
 import os
 
 from django.http import HttpResponse
