@@ -6,6 +6,7 @@
 
 import os
 
+from typing import Any
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -34,7 +35,25 @@ def auth_receiver(request):
         print(e)
         return HttpResponse(status=403)
 
+    user = add_update_user(user_data)
 
+    # List of admin email addresses
+    ADMIN_EMAILS = [
+        'heba.ahmed.ha1215@gmail.com',
+        'shofu360@gmail.com',
+        'samantha.franks70@gmail.com',
+        'nadellasrikar@gmail.com',
+        'daniel815jimenez@gmail.com'
+    ]
+    
+    request.session['user_data'] = user_data
+    request.session['user_URL'] = user.get_absolute_url()
+    request.session['is_admin'] = user_data['email'] in ADMIN_EMAILS
+
+    return redirect('sign_in')
+
+
+def add_update_user(user_data: dict[str, Any]):
     from users.models import User
     # Does user exist in database yet?
     if User.objects.filter(email=user_data['email']).exists():
@@ -53,20 +72,7 @@ def auth_receiver(request):
         )
         user.save()
 
-    # List of admin email addresses
-    ADMIN_EMAILS = [
-        'heba.ahmed.ha1215@gmail.com',
-        'shofu360@gmail.com',
-        'samantha.franks70@gmail.com',
-        'nadellasrikar@gmail.com',
-        'daniel815jimenez@gmail.com'
-    ]
-    
-    request.session['user_data'] = user_data
-    request.session['user_URL'] = user.get_absolute_url()
-    request.session['is_admin'] = user_data['email'] in ADMIN_EMAILS
-
-    return redirect('sign_in')
+    return user
 
 
 def sign_out(request):
