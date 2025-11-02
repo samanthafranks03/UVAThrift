@@ -17,11 +17,21 @@
 <hr />
 
 {% for post in posts %}
-<div style="margin-bottom: 1rem">
-  <strong>{{ post.author.name }}</strong> ({{ post.author.email }})<br />
-  {{ post.content }}<br />
-  <small>{{ post.created_at }}</small>
+<div class="post">
+  <h3>{{ post.title }}</h3>
+  <p>{{ post.content }}</p>
+  <form
+    method="POST"
+    action="{% url 'messaging:send-message' post.author.id %}"
+  >
+    {% csrf_token %}
+    <input
+      type="text"
+      name="content"
+      placeholder="Write your message..."
+      required
+    />
+    <button type="submit">Message {{ post.author.username }}</button>
+  </form>
 </div>
-{% empty %}
-<p>No posts yet.</p>
 {% endfor %}
