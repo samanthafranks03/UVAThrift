@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-# Create your views here.
+# Page to display information about our app mission and impact
 
 def about(request):
     """

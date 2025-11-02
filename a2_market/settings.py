@@ -60,6 +60,8 @@ if _csrf_origins:
 
 INSTALLED_APPS = [
     'daphne',
+    "a2_market",
+    "about.apps.AboutConfig",
     "login.apps.LoginConfig",
     "market.apps.MarketConfig",
     "users.apps.UsersConfig",
