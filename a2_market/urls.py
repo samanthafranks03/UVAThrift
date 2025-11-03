@@ -27,6 +27,7 @@ urlpatterns = [
     path('login/', include('login.urls')),
     path('users/', include('users.urls')),
     path('posts/', include('posts.urls')),
+    path('messaging/', include('messaging.urls', namespace='messaging')),
     path('messages/', RedirectView.as_view(url='/messaging/', permanent=True)),
     path('messages/<path:extra>/', RedirectView.as_view(url='/messaging/', permanent=True)),
     path('messaging/', include('messaging.urls')),

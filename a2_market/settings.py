@@ -91,6 +91,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "a2_market.urls"
+LOGIN_URL = '/login/'
 
 TEMPLATES = [
     {

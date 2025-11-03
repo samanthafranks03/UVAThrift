@@ -13,15 +13,26 @@
         flex-direction: column;
       }
 
-      /* Header */
       .chat-header {
-        background: linear-gradient(135deg, #0095f6, #0056b3);
+        position: relative;
+        background: linear-gradient(135deg, green, green);
         color: white;
         padding: 15px 20px;
-        text-align: center;
         font-size: 18px;
         font-weight: 600;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        text-align: center;
+      }
+
+      .back-arrow {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        text-decoration: none;
+        color: white;
+        font-size: 22px;
+        font-weight: bold;
       }
 
       /* Chat list container */
@@ -67,7 +78,7 @@
         width: 46px;
         height: 46px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #0095f6, #00c6ff);
+        background: linear-gradient(135deg, green, green);
         color: white;
         display: flex;
         align-items: center;
@@ -107,9 +118,24 @@
     </style>
   </head>
   <body>
-    <div class="chat-header">{{ request.user.username }}’s Messages</div>
+    <div class="chat-header">
+      <div class="chat-header-content">
+        <a href="/market/" class="back-arrow">←</a>
+        <span>{{ request.session.user_data.given_name }}'s Messages</span>
+      </div>
+    </div>
+
 
     <div class="chat-list">
+      <form method="get" style="padding: 20px; text-align: center;">
+        <input
+          type="text"
+          name="search"
+          value="{{ search_query }}"
+          placeholder="Search users..."
+          style="width: 90%; max-width: 500px; padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc;"
+        />
+      </form>
       {% if users %} {% for user in users %}
       <a class="chat-card" href="{% url 'messaging:chat' user.username %}">
         <div class="chat-info">
@@ -124,6 +150,19 @@
       {% endfor %} {% else %}
       <div class="empty">No chats yet. Start a conversation!</div>
       {% endif %}
+      {% if users %}
+      {% for user in users %}
+        <!-- existing chat-card code -->
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        {% if search_query %}
+          No users found matching "{{ search_query }}"
+        {% else %}
+          No chats yet. Start a conversation!
+        {% endif %}
+      </div>
+    {% endif %}
     </div>
   </body>
 </html>

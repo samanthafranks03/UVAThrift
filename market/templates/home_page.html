@@ -7,7 +7,6 @@
       <p>Welcome, {{ request.session.user_data.given_name }}</p>
       <p>You are currently viewing the market as: {% if request.session.is_admin %}admin{% else %}user{% endif %}</p>
       <img src="{{ request.session.user_data.picture }}" alt="User picture" width="100"/>
-      <p>Click here to <a href="/login/sign-out">Sign out</a></p>
     </div>
   {% else %}
     <div>

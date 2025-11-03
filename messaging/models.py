@@ -14,3 +14,4 @@ class Messaging(models.Model):
 
     def __str__(self):
         return f"{self.author.username} → {self.recipient.username}: {self.content[:40]}"
+
