@@ -23,3 +23,14 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.recipient.username} - {self.message.content[:30]}"
+
+class Group(models.Model):
+    name = models.CharField(max_length=100)
+    members = models.ManyToManyField(User, related_name="messaging_groups")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class GroupMessage(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)

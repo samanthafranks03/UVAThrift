@@ -4,7 +4,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User as DjangoUser
 from . import models
 from django.db.models import Q
-from .models import Messaging, Notification
+from .models import Messaging, Notification, Group, GroupMessage
 
 
 def chat_list(request: HttpRequest) -> HttpResponse:
@@ -19,26 +19,30 @@ def chat_list(request: HttpRequest) -> HttpResponse:
 
     search_query = request.GET.get("search", "").strip()
 
+    # Individual chats
+    messaged_user_ids = models.Messaging.objects.filter(
+        Q(author=user) | Q(recipient=user)
+    ).values_list("author", "recipient")
+
+    user_ids = set()
+    for author_id, recipient_id in messaged_user_ids:
+        if author_id != user.id:
+            user_ids.add(author_id)
+        if recipient_id != user.id:
+            user_ids.add(recipient_id)
+
+    users = DjangoUser.objects.filter(id__in=user_ids)
     if search_query:
-        # Show all users matching the search (except yourself)
-        users = DjangoUser.objects.filter(username__icontains=search_query).exclude(id=user.id)
-    else:
-        # Show only users you've messaged or received messages from
-        messaged_user_ids = models.Messaging.objects.filter(
-            Q(author=user) | Q(recipient=user)
-        ).values_list("author", "recipient")
+        users = users.filter(username__icontains=search_query)
 
-        user_ids = set()
-        for author_id, recipient_id in messaged_user_ids:
-            if author_id != user.id:
-                user_ids.add(author_id)
-            if recipient_id != user.id:
-                user_ids.add(recipient_id)
-
-        users = DjangoUser.objects.filter(id__in=user_ids)
+    # Group chats
+    groups = models.Group.objects.filter(members=user)
+    if search_query:
+        groups = groups.filter(name__icontains=search_query)
 
     return render(request, "messaging/chat_list.html", {
         "users": users,
+        "groups": groups,
         "search_query": search_query
     })
     
@@ -101,3 +105,70 @@ def mark_read(request, notification_id):
     note.is_read = True
     note.save()
     return redirect("messaging:notifications")
+
+    
+def group_chat_view(request: HttpRequest, group_id: int) -> HttpResponse:
+    if not request.session.get('user_data'):
+        return redirect('/login/')
+    
+    email = request.session['user_data']['email']
+    user = DjangoUser.objects.get(username=email)
+    group = get_object_or_404(models.Group, id=group_id)
+
+    if user not in group.members.all():
+        return redirect("messaging:chat-list")
+
+    messages = models.GroupMessage.objects.filter(group=group).order_by("timestamp")
+
+    return render(request, "messaging/group_chat.html", {
+        "group": group,
+        "messages": messages
+    })
+
+@require_http_methods(["POST"])
+def send_group_message(request: HttpRequest, group_id: int) -> HttpResponse:
+    if not request.session.get('user_data'):
+        return redirect('/login/')
+    
+    email = request.session['user_data']['email']
+    user = DjangoUser.objects.get(username=email)
+    group = get_object_or_404(models.Group, id=group_id)
+
+    if user not in group.members.all():
+        return redirect("messaging:chat-list")
+
+    content = request.POST.get("content", "").strip()
+    if content:
+        models.GroupMessage.objects.create(group=group, author=user, content=content)
+
+    return redirect("messaging:group-chat", group_id=group.id)
+
+def start_chat(request: HttpRequest) -> HttpResponse:
+    if not request.session.get('user_data'):
+        return redirect('/login/')
+
+    email = request.session['user_data']['email']
+    user = DjangoUser.objects.get(username=email)
+
+    search_query = request.GET.get("search", "").strip()
+    users = DjangoUser.objects.exclude(id=user.id)
+    if search_query:
+        users = users.filter(username__icontains=search_query)
+
+    if request.method == "POST":
+        selected_ids = request.POST.getlist("members")
+        if selected_ids:
+            if len(selected_ids) == 1:
+                selected_user = DjangoUser.objects.get(id=selected_ids[0])
+                return redirect("messaging:chat", username=selected_user.username)
+            else:
+                selected_users = DjangoUser.objects.filter(id__in=selected_ids)
+                group_name = "Group with " + ", ".join(u.username for u in selected_users)
+                group = models.Group.objects.create(name=group_name)
+                group.members.add(user, *selected_users)
+                return redirect("messaging:group-chat", group_id=group.id)
+
+    return render(request, "messaging/start_chat.html", {
+        "users": users,
+        "search_query": search_query
+    })

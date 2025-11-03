@@ -35,7 +35,6 @@
         font-weight: bold;
       }
 
-      /* Chat list container */
       .chat-list {
         flex-grow: 1;
         overflow-y: auto;
@@ -46,7 +45,6 @@
         gap: 12px;
       }
 
-      /* Chat preview cards */
       .chat-card {
         width: 90%;
         max-width: 500px;
@@ -73,7 +71,6 @@
         gap: 12px;
       }
 
-      /* Profile circle with initials */
       .profile-circle {
         width: 46px;
         height: 46px;
@@ -107,7 +104,6 @@
         font-size: 15px;
       }
 
-      /* Scrollbar */
       ::-webkit-scrollbar {
         width: 6px;
       }
@@ -124,46 +120,63 @@
         <span>{{ request.session.user_data.given_name }}'s Messages</span>
       </div>
     </div>
-    
-
 
     <div class="chat-list">
+      <!-- Search bar -->
       <form method="get" style="padding: 20px; text-align: center;">
         <input
           type="text"
           name="search"
           value="{{ search_query }}"
-          placeholder="Search users..."
+          placeholder="Search users or groups..."
           style="width: 90%; max-width: 500px; padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc;"
         />
       </form>
-      {% if users %} {% for user in users %}
-      <a class="chat-card" href="{% url 'messaging:chat' user.username %}">
-        <div class="chat-info">
-          <div class="profile-circle">{{ user.username|slice:":1" }}</div>
-          <div>
-            <div class="chat-username">{{ user.username }}</div>
-            <div class="chat-preview">Click to open conversation</div>
-          </div>
-        </div>
-        <span style="color: #ccc">›</span>
-      </a>
-      {% endfor %} {% else %}
-      <div class="empty">No chats yet. Start a conversation!</div>
-      {% endif %}
-      {% if users %}
-      {% for user in users %}
-        <!-- existing chat-card code -->
-      {% endfor %}
-    {% else %}
-      <div class="empty">
-        {% if search_query %}
-          No users found matching "{{ search_query }}"
-        {% else %}
-          No chats yet. Start a conversation!
-        {% endif %}
+
+      <!-- Start a Chat button -->
+      <div style="text-align: center; margin-bottom: 20px;">
+        <a href="{% url 'messaging:start-chat' %}" class="btn" style="background-color: green; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">
+          + Start a Chat
+        </a>
       </div>
-    {% endif %}
+
+      <!-- Individual chats -->
+      {% for user in users %}
+        <a class="chat-card" href="{% url 'messaging:chat' user.username %}">
+          <div class="chat-info">
+            <div class="profile-circle">{{ user.username|slice:":1" }}</div>
+            <div>
+              <div class="chat-username">{{ user.username }}</div>
+              <div class="chat-preview">Click to open conversation</div>
+            </div>
+          </div>
+          <span style="color: #ccc">›</span>
+        </a>
+      {% endfor %}
+
+      <!-- Group chats -->
+      {% for group in groups %}
+        <a class="chat-card" href="{% url 'messaging:group-chat' group.id %}">
+          <div class="chat-info">
+            <div class="profile-circle">G</div>
+            <div>
+              <div class="chat-username">{{ group.name }}</div>
+              <div class="chat-preview">{{ group.members.count }} members</div>
+            </div>
+          </div>
+          <span style="color: #ccc">›</span>
+        </a>
+      {% endfor %}
+
+      {% if not users and not groups %}
+        <div class="empty">
+          {% if search_query %}
+            No results found for "{{ search_query }}"
+          {% else %}
+            No chats yet. Start a conversation!
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
   </body>
 </html>
