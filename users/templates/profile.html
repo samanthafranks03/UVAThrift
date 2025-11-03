@@ -30,9 +30,9 @@
         <!-- Action Buttons -->
         {% if request.session.user_data %}
         <div class="d-flex flex-column gap-2 mt-3">
-            <a href="/messaging/" class="yellow-btn">Messages</a>
+            <a href="{% url 'messaging:chat_list' %}" class="yellow-btn">Messages</a>
             <a href="/reviews/inbox/" class="yellow-btn">Reviews</a>
-            <a href="/posts/inbox/" class="yellow-btn">Posts</a>
+            <a href="/posts/" class="yellow-btn">Posts</a>
             <p>Click here to <a href="/login/sign-out">Sign out</a></p>
         </div>
         {% endif %}

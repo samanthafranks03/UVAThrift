@@ -1,26 +1,69 @@
 {% extends "a2_market/base.html" %}
 
-{% block content %} 
-<h1>Our Mission</h1>
-
-<div class="container">
-    <div>
-      <p>UVA Thrift connects UVA students through sustainable commerce, making it easy to buy and sell pre-loved items while reducing waste and supporting our community.</p>
-    </div>
-</div>
-
-<h1>Why Second-Hand Shopping Matters</h1>
-    <h2>Environmental Impact</h2>
-    <h2>Save Money</h2>
-
-
-<h1>Our Policies</h1>
-<div class="container">
-    <div>
-      <p>Add text here.</p>
-    </div>
-</div>
-
+{% block css %}
+<style>
+  section {
+    margin: 2rem 0;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
+  
+  .reason {
+    margin-top: 1rem;
+    padding-left: 1rem;
+    border-left: 4px solid green;
+  }
+  
+  h1 {
+    color: #2c3e50;
+  }
+  
+  h2 {
+    color: #34495e;
+  }
+</style>
 {% endblock %}
 
+{% block content %} 
+<section class="mission">
+    <h1>Our Mission</h1>
+    <p>
+        UVA Thrift connects UVA students through sustainable commerce, making it easy to buy and sell pre-loved items 
+        while reducing waste and supporting our community.
+    </p>
+</section>
 
+<section class="why-second-hand">
+    <h1>Why Second-Hand Shopping Matters</h1>
+
+    <div class="reason">
+        <h2>Environmental Impact</h2>
+        <p>
+            Buying second-hand reduces waste in landfills and decreases the demand for new production, 
+            which saves energy, water, and raw materials.
+        </p>
+    </div>
+
+    <div class="reason">
+        <h2>Save Money</h2>
+        <p>
+            College life is expensive. Second-hand shopping helps students afford quality items at a fraction 
+            of the original cost, making student budgets stretch further.
+        </p>
+    </div>
+
+    <div class="reason">
+        <h2>Build Community</h2>
+        <p>
+            Connect with fellow UVA students, share resources, and foster a culture of sustainability 
+            and mutual support on Grounds.
+        </p>
+    </div>
+</section>
+
+<section class="policies">
+    <h1>Our Policies</h1>
+    <p>Add policies here.</p>
+</section>
+{% endblock %}
