@@ -1,109 +1,41 @@
 {% extends "a2_market/base.html" %}
 
-{% block content %} 
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="container p-4" style="max-width: 400px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
 
+        <!-- Profile Picture -->
+        {% if request.session.user_data.picture %}
+        <img src="{{ request.session.user_data.picture }}" alt="Profile Picture" class="rounded-circle mb-3" style="width:120px; height:120px; object-fit: cover;">
+        {% endif %}
 
-<!-- <head>
-    <meta charset="UTF-8"/>
-    <title>Profile</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
+        <!-- Name & Email -->
+        <h2>{{ request.session.user_data.given_name }} {{ request.session.user_data.family_name }}</h2>
+        <p>Email: {{ request.session.user_data.email }}</p>
 
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
+        <!-- Banned Notice -->
+        {% if request.session.user_data and request.session.user_data.email == object.email and object.is_flagged %}
+        <div class="mb-3 p-2 rounded" style="background:#ffe6e6; color:#a94442; font-weight:bold;">
+            You are banned. Talk to an admin to get unbanned. :(
+        </div>
+        {% endif %}
 
-        img {
-            border-radius: 50%;
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            margin-top: 10px;
-        }
+        <!-- Admin Panel -->
+        {% if request.session.is_admin %}
+        <p>
+            <a href="/login/admin-panel/" class="yellow-btn">Admin Control Panel</a>
+        </p>
+        {% endif %}
 
-        p {
-            color: #333;
-            margin: 10px 0;
-        }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        a:hover {
-            text-decoration: none;
-        }
-        
-        .yellow-btn {
-            display: inline-block;
-            background-color: #ffd700;
-            color: #000;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            text-decoration: none;
-            margin: 10px;
-            transition: background-color 0.2s ease;
-        }
-
-        .yellow-btn:hover {
-            background-color: #ffcf33;
-        }
-
-        /* .myreviews-btn {
-            display: inline-block;
-            background-color: #ffd700;
-            color: #000;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            text-decoration: none;
-            margin: 10px;
-            transition: background-color 0.2s ease;
-        } */
-
-        .myreviews-btn:hover {
-            background-color: #ffcf33;
-        }
-    </style>
-</head> -->
-
-<body>
-<div class="container">
-    <h1>{{ object.name }}</h1>
-    <p>{{ object.bio }}</p>
-    <p>{{ object.interests }}</p>
-    {% if request.session.user_data and request.session.user_data.email == object.email and object.is_flagged %}
-    <div style="margin-top:12px;padding:10px;border-radius:6px;background:#ffe6e6;color:#a94442;font-weight:bold;">
-        You are banned. Talk to an admin to get unbanned. :(
+        <!-- Action Buttons -->
+        {% if request.session.user_data %}
+        <div class="d-flex flex-column gap-2 mt-3">
+            <a href="/messaging/" class="yellow-btn">Messages</a>
+            <a href="/reviews/inbox/" class="yellow-btn">Reviews</a>
+            <a href="/posts/inbox/" class="yellow-btn">Posts</a>
+            <p>Click here to <a href="/login/sign-out">Sign out</a></p>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
-    {% if request.session.is_admin %}
-    <p>
-    <a href="/login/admin-panel/" style="background:#ffd700;color:#000;padding:8px 16px;border-radius:5px;font-weight:bold;text-decoration:none;">Admin Control Panel</a>
-    </p>
-    {% endif %}
-
-    {% if request.session.user_data %}
-        <a href="/messaging/" class="yellow-btn">Messages</a>
-        <a href="/reviews/inbox/" class="yellow-btn">Reviews</a>
-        <a href="/posts/inbox/" class="yellow-btn">Posts</a>
-    {% endif %}
 </div>
-</body>
-
 {% endblock %}
