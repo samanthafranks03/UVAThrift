@@ -163,7 +163,7 @@ def start_chat(request: HttpRequest) -> HttpResponse:
                 return redirect("messaging:chat", username=selected_user.username)
             else:
                 selected_users = DjangoUser.objects.filter(id__in=selected_ids)
-                group_name = "Group with " + ", ".join(u.username for u in selected_users)
+                group_name = "Group with " + ", ".join([user.username] + [u.username for u in selected_users])
                 group = models.Group.objects.create(name=group_name)
                 group.members.add(user, *selected_users)
                 return redirect("messaging:group-chat", group_id=group.id)

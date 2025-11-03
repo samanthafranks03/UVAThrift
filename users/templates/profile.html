@@ -23,17 +23,17 @@
         <!-- Admin Panel -->
         {% if request.session.is_admin %}
         <p>
-            <a href="/login/admin-panel/" class="yellow-btn">Admin Control Panel</a>
+            <a href="/login/admin-panel/" class="btn btn-secondary">Admin Control Panel</a>
         </p>
         {% endif %}
 
         <!-- Action Buttons -->
         {% if request.session.user_data %}
         <div class="d-flex flex-column gap-2 mt-3">
-            <a href="{% url 'messaging:chat-list' %}" class="yellow-btn">Messages</a>
-            <a href="/reviews/inbox/" class="yellow-btn">Reviews</a>
-            <a href="/posts/" class="yellow-btn">Posts</a> 
-            <a href="/login/sign-out">Sign out</a>
+            <a href="{% url 'messaging:chat-list' %}" class="btn btn-secondary">Messages</a>
+            <a href="/reviews/inbox/" class="btn btn-secondary">Reviews</a>
+            <a href="/posts/" class="btn btn-secondary">Posts</a> 
+            <a href="/login/sign-out" class="btn btn-secondary">Sign out</a>
         </div>
         {% endif %} 
 
