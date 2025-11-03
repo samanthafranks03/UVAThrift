@@ -4,6 +4,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User as DjangoUser
 from . import models
 from django.db.models import Q
+from .models import Messaging, Notification
 
 
 def chat_list(request: HttpRequest) -> HttpResponse:
@@ -40,7 +41,6 @@ def chat_list(request: HttpRequest) -> HttpResponse:
         "users": users,
         "search_query": search_query
     })
-
     
 
 
@@ -63,42 +63,41 @@ def chat_view(request: HttpRequest, username: str) -> HttpResponse:
     return render(request, "messaging/chat.html", {"messages": messages, "other_user": other_user})
 
 
-@require_http_methods(["POST"])
-def send_message(request: HttpRequest, username: str) -> HttpResponse:
-    # Check if user is logged in
+def send_message(request, username):
     if not request.session.get('user_data'):
         return redirect('/login/')
     
-    other_user = get_object_or_404(DjangoUser, username=username)
     email = request.session['user_data']['email']
-    user = DjangoUser.objects.get_or_create(
-        username=email,
-        defaults={'email': email}
-    )[0]
+    user = DjangoUser.objects.get_or_create(username=email, defaults={'email': email})[0]
+    recipient = get_object_or_404(DjangoUser, username=username)
+
+    if request.method == "POST":
+        content = request.POST.get("content", "").strip()
+        if content:
+            message = Messaging.objects.create(author=user, recipient=recipient, content=content)
+            Notification.objects.create(recipient=recipient, message=message)
+
+    return redirect("messaging:chat", username=username)
+
+def notifications(request):
+    if not request.session.get('user_data'):
+        return redirect('/login/')
     
-    content = request.POST.get("content", "").strip()
-    if not content:
-        return redirect("messaging:chat", username=other_user.username)
+    email = request.session['user_data']['email']
+    user = DjangoUser.objects.get(username=email)
 
-    models.Messaging.objects.create(author=user, recipient=other_user, content=content)
-    return redirect("messaging:chat", username=other_user.username)
-
-def group_list(request):
-    user = get_current_user(request)
-    groups = Group.objects.filter(members=user)
-    return render(request, "messaging/group_list.html", {"groups": groups})
-
-def group_chat(request, group_id):
-    user = get_current_user(request)
-    group = get_object_or_404(Group, id=group_id, members=user)
-    messages = GroupMessage.objects.filter(group=group).order_by("created_at")
-    return render(request, "messaging/group_chat.html", {"group": group, "messages": messages})
+    unread = models.Notification.objects.filter(recipient=user, is_read=False).order_by("-created_at")
+    return render(request, "messaging/notifications.html", {"notifications": unread})
 
 @require_http_methods(["POST"])
-def send_group_message(request, group_id):
-    user = get_current_user(request)
-    group = get_object_or_404(Group, id=group_id, members=user)
-    content = request.POST.get("content", "").strip()
-    if content:
-        GroupMessage.objects.create(group=group, author=user, content=content)
-    return redirect("messaging:group-chat", group_id=group.id)
+def mark_read(request, notification_id):
+    if not request.session.get('user_data'):
+        return redirect('/login/')
+    
+    email = request.session['user_data']['email']
+    user = DjangoUser.objects.get(username=email)
+
+    note = get_object_or_404(models.Notification, id=notification_id, recipient=user)
+    note.is_read = True
+    note.save()
+    return redirect("messaging:notifications")

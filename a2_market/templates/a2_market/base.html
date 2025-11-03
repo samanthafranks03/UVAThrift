@@ -21,6 +21,12 @@
           </div>
           <div class="navbar-nav ms-auto">
             <a href="{{ request.session.user_URL}}" class="nav-item nav-link">Profile</a>
+            <a href="{% url 'messaging:notifications' %}" class="nav-item nav-link">Notifications
+              {% if unread_count > 0 %}
+                <span class="badge">{{ unread_count }}</span>
+              {% endif %}
+            </a>
+        
           </div>
         </div>
       </div>
