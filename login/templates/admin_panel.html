@@ -11,10 +11,15 @@
         th { background: #eee; }
         .ban-btn { background: #d9534f; color: #fff; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
         .ban-btn:disabled { background: #aaa; }
+        .back-arrow {
+            color: black; 
+        }
+
     </style>
 </head>
 <body>
 <div class="container">
+    <a href="{{ request.session.user_URL}}" class="back-arrow"> ← </a>
     <h2>All Users</h2>
     <table>
         <tr><th>Name</th><th>Email</th><th>Banned?</th><th>Action</th></tr>

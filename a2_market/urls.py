@@ -31,4 +31,4 @@ urlpatterns = [
     path('messages/', RedirectView.as_view(url='/messaging/', permanent=True)),
     path('messages/<path:extra>/', RedirectView.as_view(url='/messaging/', permanent=True)),
     path('messaging/', include('messaging.urls')),
-]
+] 

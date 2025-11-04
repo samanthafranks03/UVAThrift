@@ -27,13 +27,11 @@
         </p>
         {% endif %}
 
-        <!-- Action Buttons -->
+        <!-- User Posts -->
         {% if request.session.user_data %}
         <div class="d-flex flex-column gap-2 mt-3">
-            <a href="{% url 'messaging:chat-list' %}" class="btn btn-secondary">Messages</a>
-            <a href="/reviews/inbox/" class="btn btn-secondary">Reviews</a>
-            <a href="/posts/" class="btn btn-secondary">Posts</a> 
-            <a href="/login/sign-out" class="btn btn-secondary">Sign out</a>
+            <h3>My Posts</h3>
+            <p>Add functionality for users to view/ delete their posts here</p>
         </div>
         {% endif %} 
 
