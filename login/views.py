@@ -89,8 +89,22 @@ def admin_panel(request):
     # Only allow admins
     if not request.session.get('is_admin', False):
         return HttpResponse('Forbidden', status=403)
+    
+    # Get all users
     users = User.objects.all()
-    return render(request, 'admin_panel.html', {'users': users})
+    
+    # Get flagged posts count
+    from posts.models import Post, PostFlag
+    from django.db.models import Count
+    flagged_posts_count = Post.objects.annotate(
+        flag_count_db=Count('postflag')
+    ).filter(flag_count_db__gt=0).count()
+    
+    context = {
+        'users': users,
+        'flagged_posts_count': flagged_posts_count
+    }
+    return render(request, 'admin_panel.html', context)
 
 
 @csrf_protect

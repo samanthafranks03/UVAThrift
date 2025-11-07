@@ -5,7 +5,11 @@
     <title>Admin Control Panel</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f4f4; }
-        .container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 40px auto; max-width: 600px; }
+        .container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 40px auto; max-width: 800px; }
+        .admin-nav { display: flex; gap: 15px; margin-bottom: 30px; padding: 15px; background: #e9ecef; border-radius: 8px; }
+        .admin-nav a { background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; transition: background-color 0.3s; }
+        .admin-nav a:hover { background: #0056b3; }
+        .admin-nav a.active { background: #28a745; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
         th { background: #eee; }
@@ -14,12 +18,24 @@
         .back-arrow {
             color: black; 
         }
-
+        h2 { color: #333; }
     </style>
 </head>
 <body>
 <div class="container">
     <a href="{{ request.session.user_URL}}" class="back-arrow"> ← </a>
+    <h1>Admin Control Panel</h1>
+    
+    <div class="admin-nav">
+        <a href="/login/admin-panel/" class="active">👥 User Management</a>
+        <a href="/posts/admin/flagged/">
+            🚩 Flagged Posts
+            {% if flagged_posts_count > 0 %}
+                <span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8rem; margin-left: 5px;">{{ flagged_posts_count }}</span>
+            {% endif %}
+        </a>
+    </div>
+    
     <h2>All Users</h2>
     <table>
         <tr><th>Name</th><th>Email</th><th>Banned?</th><th>Action</th></tr>

@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_protect
+from django.db.models import Count
 from users.models import User
 from .models import Post, PostFlag
 
@@ -104,3 +106,67 @@ def toggle_flag(request, post_id):
         "flag_count": post.flag_count(),
         "message": message
     })
+
+
+########## Admin Views ##########
+
+@csrf_protect
+@require_http_methods(["GET"])
+def admin_flagged_posts(request):
+    """Admin view to see all flagged posts"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        return HttpResponse('Forbidden: Admin access required', status=403)
+    
+    # Get all posts with flags, ordered by flag count (most flagged first)
+    flagged_posts = Post.objects.annotate(
+        flag_count_db=Count('postflag')
+    ).filter(flag_count_db__gt=0).select_related('author').order_by('-flag_count_db')
+    
+    # Add flag details to each post
+    for post in flagged_posts:
+        post.flags = PostFlag.objects.filter(post=post).select_related('user')
+    
+    context = {
+        "flagged_posts": flagged_posts,
+        "total_flagged": flagged_posts.count()
+    }
+    return render(request, "posts/admin_flagged_posts.html", context)
+
+
+@csrf_protect
+@require_http_methods(["POST"])
+def admin_delete_post(request, post_id):
+    """Admin action to delete a flagged post"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        return HttpResponse('Forbidden: Admin access required', status=403)
+    
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        post_content = post.content[:50] + "..." if len(post.content) > 50 else post.content
+        post.delete()
+        messages.success(request, f"Post deleted successfully: '{post_content}'")
+    except Exception as e:
+        messages.error(request, f"Error deleting post: {str(e)}")
+    
+    return redirect('admin_flagged_posts')
+
+
+@csrf_protect 
+@require_http_methods(["POST"])
+def admin_dismiss_flags(request, post_id):
+    """Admin action to dismiss all flags for a post without deleting it"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        return HttpResponse('Forbidden: Admin access required', status=403)
+    
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        flag_count = post.flag_count()
+        PostFlag.objects.filter(post=post).delete()
+        messages.success(request, f"Dismissed {flag_count} flag(s) for post.")
+    except Exception as e:
+        messages.error(request, f"Error dismissing flags: {str(e)}")
+    
+    return redirect('admin_flagged_posts')
