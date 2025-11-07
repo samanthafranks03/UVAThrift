@@ -5,13 +5,13 @@
     <div class="container p-4" style="max-width: 400px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
 
         <!-- Profile Picture -->
-        {% if request.session.user_data.picture %}
-        <img src="{{ request.session.user_data.picture }}" alt="Profile Picture" class="rounded-circle mb-3" style="width:120px; height:120px; object-fit: cover;">
+        {% if user.picture %}
+        <img src="{{ user.picture }}" alt="Profile Picture" class="rounded-circle mb-3" style="width:120px; height:120px; object-fit: cover;">
         {% endif %}
 
         <!-- Name & Email -->
-        <h2>{{ request.session.user_data.given_name }} {{ request.session.user_data.family_name }}</h2>
-        <p>Email: {{ request.session.user_data.email }}</p>
+        <h2>{{ user.nickname }}</h2>
+        <p>Email: {{ user.email }}</p>
 
         <!-- Banned Notice -->
         {% if request.session.user_data and request.session.user_data.email == object.email and object.is_flagged %}
@@ -21,14 +21,21 @@
         {% endif %}
 
         <!-- Admin Panel -->
-        {% if request.session.is_admin %}
+        {% if request.session.is_admin and user.is_admin %}
         <p>
             <a href="/login/admin-panel/" class="btn btn-secondary">Admin Control Panel</a>
         </p>
         {% endif %}
 
+        <!-- Edit Profile -->
+        {% if request.session.user_data.email == user.email %}
+        <p>
+            <a href="{{ user.hashed_email }}/edit" class="btn btn-secondary">Edit Profile</a>
+        </p>
+        {% endif %}
+
         <!-- User Posts -->
-        {% if request.session.user_data %}
+        {% if user %}
         <div class="d-flex flex-column gap-2 mt-3">
             <h3>My Posts</h3>
             <p>Add functionality for users to view/ delete their posts here</p>
