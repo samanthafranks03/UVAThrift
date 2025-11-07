@@ -132,6 +132,21 @@
     background: #218838;
   }
   
+  .btn-admin-ban {
+    background: #6f42c1;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+  }
+  
+  .btn-admin-ban:hover {
+    background: #5a2d91;
+  }
+  
   .no-posts {
     text-align: center;
     padding: 40px;
@@ -214,6 +229,14 @@
           <button type="submit" class="btn-admin-delete" 
                   onclick="return confirm('Are you sure you want to delete this post? This action cannot be undone.')">
             🗑️ Delete Post
+          </button>
+        </form>
+        
+        <form method="post" action="{% url 'admin_ban_and_delete' post.id %}" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn-admin-ban"
+                  onclick="return confirm('Are you sure you want to BAN the user {{ post.author.name }} and DELETE this post? This action cannot be undone.')">
+            🚫 Ban & Delete
           </button>
         </form>
         

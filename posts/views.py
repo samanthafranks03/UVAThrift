@@ -170,3 +170,70 @@ def admin_dismiss_flags(request, post_id):
         messages.error(request, f"Error dismissing flags: {str(e)}")
     
     return redirect('admin_flagged_posts')
+
+
+@csrf_protect
+@require_http_methods(["POST"])
+def admin_ban_and_delete(request, post_id):
+    """Admin action to ban the user and delete their flagged post"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        return HttpResponse('Forbidden: Admin access required', status=403)
+    
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        user = post.author
+        post_content = post.content[:50] + "..." if len(post.content) > 50 else post.content
+        
+        # Ban the user
+        user.is_flagged = True
+        user.save()
+        
+        # Delete the post
+        post.delete()
+        
+        messages.success(request, f"User '{user.name}' has been banned and their post deleted: '{post_content}'")
+    except Exception as e:
+        messages.error(request, f"Error banning user and deleting post: {str(e)}")
+    
+    return redirect('admin_flagged_posts')
+
+
+@csrf_protect
+@require_http_methods(["GET"])
+def admin_flagged_posts_api(request):
+    """API endpoint to get flagged posts data as JSON"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        return JsonResponse({"error": "Forbidden: Admin access required"}, status=403)
+    
+    # Get all posts with flags, ordered by flag count (most flagged first)
+    flagged_posts = Post.objects.annotate(
+        flag_count_db=Count('postflag')
+    ).filter(flag_count_db__gt=0).select_related('author').order_by('-flag_count_db')
+    
+    # Prepare data for JSON response
+    posts_data = []
+    for post in flagged_posts:
+        flags_data = []
+        for flag in PostFlag.objects.filter(post=post).select_related('user'):
+            flags_data.append({
+                'user_name': flag.user.name,
+                'user_email': flag.user.email,
+                'created_at': flag.created_at.strftime('%b %d')
+            })
+        
+        posts_data.append({
+            'id': post.id,
+            'content': post.content,
+            'author_name': post.author.name,
+            'author_email': post.author.email,
+            'created_at': post.created_at.strftime('%b %d, %Y %H:%M'),
+            'flag_count': post.flag_count_db,
+            'flags': flags_data
+        })
+    
+    return JsonResponse({
+        'flagged_posts': posts_data,
+        'total_flagged': len(posts_data)
+    })

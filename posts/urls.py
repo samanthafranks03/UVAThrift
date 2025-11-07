@@ -7,6 +7,8 @@ urlpatterns = [
     path('flag/<int:post_id>/', views.toggle_flag, name='toggle_flag'),
     # Admin URLs
     path('admin/flagged/', views.admin_flagged_posts, name='admin_flagged_posts'),
+    path('admin/flagged-api/', views.admin_flagged_posts_api, name='admin_flagged_posts_api'),
     path('admin/delete/<int:post_id>/', views.admin_delete_post, name='admin_delete_post'),
     path('admin/dismiss-flags/<int:post_id>/', views.admin_dismiss_flags, name='admin_dismiss_flags'),
+    path('admin/ban-and-delete/<int:post_id>/', views.admin_ban_and_delete, name='admin_ban_and_delete'),
 ]
