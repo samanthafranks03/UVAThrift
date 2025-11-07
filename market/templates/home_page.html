@@ -1,5 +1,83 @@
 {% extends "a2_market/base.html" %}
 
+{% block css %}
+<style>
+  .flag-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 5px;
+    border-radius: 3px;
+  }
+  
+  .flag-icon {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    display: inline-block;
+  }
+  
+  .flag-icon::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0;
+    width: 2px;
+    height: 20px;
+    background-color: #6c757d;
+    border-radius: 1px;
+  }
+  
+  .flag-icon::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 2px;
+    width: 12px;
+    height: 8px;
+    border: 2px solid #6c757d;
+    border-left: none;
+    background-color: transparent;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  
+  .flag-btn.flagged .flag-icon::before {
+    background-color: #dc3545;
+  }
+  
+  .flag-btn.flagged .flag-icon::after {
+    background-color: #dc3545;
+    border-color: #dc3545;
+  }
+  
+  .flag-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .flag-btn:hover .flag-icon::after {
+    background-color: rgba(220, 53, 69, 0.2);
+  }
+  
+  .flag-btn.flagged:hover .flag-icon::after {
+    background-color: #c82333;
+  }
+  
+  .post-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .flag-count {
+    font-size: 12px;
+    color: #6c757d;
+    margin-left: 5px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 
   {% if request.session.user_data %}
@@ -37,9 +115,61 @@
     <div class="border p-2 mb-2">
       <strong>{{ post.author.name }}</strong>
       <p>{{ post.content }}</p>
-      <small>Posted on {{ post.created_at }}</small>
+      <div class="post-actions">
+        <small>Posted on {{ post.created_at }}</small>
+        {% if current_user and current_user != post.author %}
+          <button class="flag-btn {% if post.is_flagged_by_current_user %}flagged{% endif %}" 
+                  data-post-id="{{ post.id }}" 
+                  onclick="toggleFlag({{ post.id }}, this)"
+                  title="{% if post.is_flagged_by_current_user %}Remove flag{% else %}Flag post{% endif %}">
+            <span class="flag-icon"></span>
+          </button>
+          <span class="flag-count" id="flag-count-{{ post.id }}">
+            {% if post.flag_count > 0 %}{{ post.flag_count }}{% endif %}
+          </span>
+        {% endif %}
+      </div>
     </div>
   {% empty %}
     <p>No posts yet. Be the first to post something!</p>
   {% endfor %}
+
+  <script>
+  function toggleFlag(postId, buttonElement) {
+    fetch(`/posts/flag/${postId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Toggle button appearance
+        if (data.is_flagged) {
+          buttonElement.classList.add('flagged');
+          buttonElement.title = 'Remove flag';
+        } else {
+          buttonElement.classList.remove('flagged');
+          buttonElement.title = 'Flag post';
+        }
+        
+        // Update flag count
+        const flagCountElement = document.getElementById(`flag-count-${postId}`);
+        if (data.flag_count > 0) {
+          flagCountElement.textContent = data.flag_count;
+        } else {
+          flagCountElement.textContent = '';
+        }
+      } else {
+        alert(data.error || 'An error occurred');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred while flagging the post');
+    });
+  }
+  </script>
 {% endblock %}

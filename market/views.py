@@ -36,12 +36,18 @@ def home(request):
 
         can_post = True
 
-    #Grabs all teh posts from our db
+    #Grabs all the posts from our db
     posts = Post.objects.select_related("author").all()
+    
+    # Add flag information for each post if user is logged in
+    if user:
+        for post in posts:
+            post.is_flagged_by_current_user = post.is_flagged_by_user(user)
 
     context = {
         "posts": posts,
         "user": user,
+        "current_user": user,  # Add current_user to context for template
         "can_post": can_post,
     }
     return render(request, "home_page.html", context)
