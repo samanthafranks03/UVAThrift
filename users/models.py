@@ -13,7 +13,7 @@ class User(models.Model):
     # Extra Info
     bio = models.TextField(blank=True)
     interests = models.TextField(blank=True)
-    picture_url = models.URLField(blank=True)
+    picture = models.URLField(blank=True)
     # Moderation
     is_flagged = models.BooleanField(default=False)
     is_new_user = models.BooleanField(default=False)
