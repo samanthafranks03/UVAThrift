@@ -1,0 +1,18 @@
+{% extends "a2_market/base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="container p-4" style="max-width: 600px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
+        {% if request.session.user_data.email == user.email %}
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Save changes</button>
+        </form>
+
+        {% else %}
+            <p>You cannot edit this profile.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

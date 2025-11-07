@@ -1,4 +1,5 @@
 import hashlib
+from django import forms
 from django.db import models
 from django.urls import reverse
 from messaging.models import Notification  
@@ -36,3 +37,21 @@ class Admin(User):
     def ban_user(self, target_user):
         print("Banning user: " + target_user + "!\n")
 
+
+class UserForm(forms.ModelForm):
+    class Meta:
+        model = User
+        # Choose fields that a user should be able to edit
+        fields = [
+            "name",
+            "nickname",
+            "bio",
+            "interests",
+            "picture",
+        ]
+        # Optional: add widgets for nicer rendering
+        widgets = {
+            "bio": forms.Textarea(attrs={"rows": 4, "placeholder": "Tell us about yourself..."}),
+            "interests": forms.Textarea(attrs={"rows": 3, "placeholder": "Your hobbies, passions..."}),
+            "picture": forms.URLInput(attrs={"placeholder": "Link to your profile picture"}),
+        }

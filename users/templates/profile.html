@@ -1,47 +1,50 @@
 {% extends "a2_market/base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="container p-4" style="max-width: 400px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="container p-4"
+             style="max-width: 400px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
 
-        <!-- Profile Picture -->
-        {% if user.picture %}
-        <img src="{{ user.picture }}" alt="Profile Picture" class="rounded-circle mb-3" style="width:120px; height:120px; object-fit: cover;">
-        {% endif %}
+            <!-- Profile Picture -->
+            {% if user.picture %}
+                <img src="{{ user.picture }}" alt="Profile Picture" class="rounded-circle mb-3"
+                     style="width:120px; height:120px; object-fit: cover;">
+            {% endif %}
 
-        <!-- Name & Email -->
-        <h2>{{ user.nickname }}</h2>
-        <p>Email: {{ user.email }}</p>
+            <!-- Name & Email -->
+            <h2>{{ user.nickname }}</h2>
+            <p>Name: {{ user.name }}</p>
+            <p>Email: {{ user.email }}</p>
 
-        <!-- Banned Notice -->
-        {% if request.session.user_data and request.session.user_data.email == object.email and object.is_flagged %}
-        <div class="mb-3 p-2 rounded" style="background:#ffe6e6; color:#a94442; font-weight:bold;">
-            You are banned. Talk to an admin to get unbanned. :(
+            <!-- Banned Notice -->
+            {% if request.session.user_data and request.session.user_data.email == object.email and object.is_flagged %}
+                <div class="mb-3 p-2 rounded" style="background:#ffe6e6; color:#a94442; font-weight:bold;">
+                    You are banned. Talk to an admin to get unbanned. :(
+                </div>
+            {% endif %}
+
+            <!-- Admin Panel -->
+            {% if request.session.is_admin and user.is_admin %}
+                <p>
+                    <a href="/login/admin-panel/" class="btn btn-secondary">Admin Control Panel</a>
+                </p>
+            {% endif %}
+
+            <!-- Edit Profile -->
+            {% if request.session.user_data.email == user.email %}
+                <p>
+                    <a href="/users/{{ user.hashed_email }}/edit" class="btn btn-secondary">Edit Profile</a>
+                </p>
+            {% endif %}
+
+            <!-- User Posts -->
+            {% if user %}
+                <div class="d-flex flex-column gap-2 mt-3">
+                    <h3>Posts</h3>
+                    <p>Add functionality for users to view/ delete their posts here</p>
+                </div>
+            {% endif %}
+
         </div>
-        {% endif %}
-
-        <!-- Admin Panel -->
-        {% if request.session.is_admin and user.is_admin %}
-        <p>
-            <a href="/login/admin-panel/" class="btn btn-secondary">Admin Control Panel</a>
-        </p>
-        {% endif %}
-
-        <!-- Edit Profile -->
-        {% if request.session.user_data.email == user.email %}
-        <p>
-            <a href="{{ user.hashed_email }}/edit" class="btn btn-secondary">Edit Profile</a>
-        </p>
-        {% endif %}
-
-        <!-- User Posts -->
-        {% if user %}
-        <div class="d-flex flex-column gap-2 mt-3">
-            <h3>My Posts</h3>
-            <p>Add functionality for users to view/ delete their posts here</p>
-        </div>
-        {% endif %} 
-
     </div>
-</div>
 {% endblock %}
