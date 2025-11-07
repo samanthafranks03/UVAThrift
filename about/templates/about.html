@@ -1,51 +1,70 @@
-<!DOCTYPE html>
+<!-- Page where users can learn about our app mission, policies, and the benefits of second-hand shopping -->
+{% extends "a2_market/base.html" %}
 
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>About</title>
-  </head>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% block css %}
+<style>
+  section {
+    margin: 2rem 0;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
+  
+  .reason {
+    margin-top: 1rem;
+    padding-left: 1rem;
+    border-left: 4px solid green;
+  }
+  
+  h1 {
+    color: #2c3e50;
+  }
+  
+  h2 {
+    color: #34495e;
+  }
+</style>
+{% endblock %}
 
-  <!--Navigation bar for market, about, and profile pages (add new listing button?)-->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-        <a href="#" class="navbar-brand">UVA Thrift</a>
-        <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarCollapse">
-            <div class="navbar-nav">
-                <a href="/market" class="nav-item nav-link active">Browse</a>
-                <a href="/about" class="nav-item nav-link">About</a>
-            </div>
-            <div class="navbar-nav ms-auto">
-                <a href="/users" class="nav-item nav-link">Profile</a>
-            </div>
-        </div>
-    </div>
-    </nav>
-    
+{% block content %} 
+<section class="mission">
     <h1>Our Mission</h1>
+    <p>
+        UVA Thrift connects UVA students through sustainable commerce, making it easy to buy and sell pre-loved items 
+        while reducing waste and supporting our community.
+    </p>
+</section>
 
-    <div class="container">
-        <div>
-          <p>UVA Thrift connects UVA students through sustainable commerce, making it easy to buy and sell pre-loved items while reducing waste and supporting our community.</p>
-        </div>
-    </div>
-
+<section class="why-second-hand">
     <h1>Why Second-Hand Shopping Matters</h1>
+
+    <div class="reason">
         <h2>Environmental Impact</h2>
-        <h2>Save Money</h2>
-
-
-    <h1>Our Policies</h1>
-    <div class="container">
-        <div>
-          <p>Add text here.</p>
-        </div>
+        <p>
+            Buying second-hand reduces waste in landfills and decreases the demand for new production, 
+            which saves energy, water, and raw materials.
+        </p>
     </div>
 
-    
-  </body>
-</html>
+    <div class="reason">
+        <h2>Save Money</h2>
+        <p>
+            College life is expensive. Second-hand shopping helps students afford quality items at a fraction 
+            of the original cost, making student budgets stretch further.
+        </p>
+    </div>
+
+    <div class="reason">
+        <h2>Build Community</h2>
+        <p>
+            Connect with fellow UVA students, share resources, and foster a culture of sustainability 
+            and mutual support on Grounds.
+        </p>
+    </div>
+</section>
+
+<section class="policies">
+    <h1>Our Policies</h1>
+    <p>Add policies here.</p>
+</section>
+{% endblock %}

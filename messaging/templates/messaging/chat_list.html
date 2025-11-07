@@ -1,3 +1,7 @@
+{% extends "a2_market/base.html" %}
+
+{% block content %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,19 +16,17 @@
         display: flex;
         flex-direction: column;
       }
-
-      /* Header */
-      .chat-header {
-        background: linear-gradient(135deg, #0095f6, #0056b3);
+      .back-arrow {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        text-decoration: none;
         color: white;
-        padding: 15px 20px;
-        text-align: center;
-        font-size: 18px;
-        font-weight: 600;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        font-size: 22px;
+        font-weight: bold;
       }
 
-      /* Chat list container */
       .chat-list {
         flex-grow: 1;
         overflow-y: auto;
@@ -35,7 +37,6 @@
         gap: 12px;
       }
 
-      /* Chat preview cards */
       .chat-card {
         width: 90%;
         max-width: 500px;
@@ -62,12 +63,11 @@
         gap: 12px;
       }
 
-      /* Profile circle with initials */
       .profile-circle {
         width: 46px;
         height: 46px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #0095f6, #00c6ff);
+        background: linear-gradient(135deg, rgb(2, 87, 2), rgb(2, 87, 2));
         color: white;
         display: flex;
         align-items: center;
@@ -96,7 +96,6 @@
         font-size: 15px;
       }
 
-      /* Scrollbar */
       ::-webkit-scrollbar {
         width: 6px;
       }
@@ -107,23 +106,65 @@
     </style>
   </head>
   <body>
-    <div class="chat-header">{{ request.user.username }}’s Messages</div>
 
     <div class="chat-list">
-      {% if users %} {% for user in users %}
-      <a class="chat-card" href="{% url 'messaging:chat' user.username %}">
-        <div class="chat-info">
-          <div class="profile-circle">{{ user.username|slice:":1" }}</div>
-          <div>
-            <div class="chat-username">{{ user.username }}</div>
-            <div class="chat-preview">Click to open conversation</div>
+      <!-- Search bar -->
+      <form method="get" style="padding: 20px; text-align: center;">
+        <input
+          type="text"
+          name="search"
+          value="{{ search_query }}"
+          placeholder="Search messages"
+          style="width: 100%; max-width: 500px; padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc;"
+        />
+      </form>
+
+      <!-- Start a Chat button -->
+      <div style="text-align: center; margin-bottom: 20px;">
+        <a href="{% url 'messaging:start-chat' %}" class="btn" style="background-color: rgb(2, 87, 2); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">
+          + Start a Chat
+        </a>
+      </div>
+
+      <!-- Individual chats -->
+      {% for user in users %}
+        <a class="chat-card" href="{% url 'messaging:chat' user.username %}">
+          <div class="chat-info">
+            <div class="profile-circle">{{ user.username|slice:":1" }}</div>
+            <div>
+              <div class="chat-username">{{ user.username }}</div>
+              <div class="chat-preview">Click to open conversation</div>
+            </div>
           </div>
+          <span style="color: #ccc">›</span>
+        </a>
+      {% endfor %}
+
+      <!-- Group chats -->
+      {% for group in groups %}
+        <a class="chat-card" href="{% url 'messaging:group-chat' group.id %}">
+          <div class="chat-info">
+            <div class="profile-circle">G</div>
+            <div>
+              <div class="chat-username">{{ group.name }}</div>
+              <div class="chat-preview">{{ group.members.count }} members</div>
+            </div>
+          </div>
+          <span style="color: #ccc">›</span>
+        </a>
+      {% endfor %}
+
+      {% if not users and not groups %}
+        <div class="empty">
+          {% if search_query %}
+            No results found for "{{ search_query }}"
+          {% else %}
+            No chats yet. Start a conversation!
+          {% endif %}
         </div>
-        <span style="color: #ccc">›</span>
-      </a>
-      {% endfor %} {% else %}
-      <div class="empty">No chats yet. Start a conversation!</div>
       {% endif %}
     </div>
   </body>
 </html>
+
+{% endblock %}

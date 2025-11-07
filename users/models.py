@@ -1,6 +1,7 @@
 import hashlib
 from django.db import models
 from django.urls import reverse
+from messaging.models import Notification  
 
 
 class User(models.Model):
@@ -35,7 +36,3 @@ class Admin(User):
     def ban_user(self, target_user):
         print("Banning user: " + target_user + "!\n")
 
-
-from django.db import models
-
-# Create your models here.

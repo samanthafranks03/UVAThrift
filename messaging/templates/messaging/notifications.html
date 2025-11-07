@@ -1,0 +1,35 @@
+{% extends "a2_market/base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="container p-4" style="max-width: 600px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+
+    <h2 class="mb-4 text-center">Notifications</h2>
+
+    {% if notifications %}
+      <ul class="list-group">
+        {% for note in notifications %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{{ note.message.author.username }}</strong>: {{ note.message.content|truncatechars:80 }}
+              <br>
+              <small class="text-muted">{{ note.created_at|date:"M d, H:i" }}</small>
+            </div>
+            <form method="post" action="{% url 'messaging:mark-read' note.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="text-center text-muted">No unread messages.</div>
+    {% endif %}
+
+    <div class="mt-4 text-center">
+      <a href="{% url 'messaging:chat-list' %}" class="btn btn-secondary">View Messages</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

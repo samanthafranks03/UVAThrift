@@ -11,7 +11,6 @@ from google.auth.transport import requests
 def sign_in(request):
     return render(request, 'sign_in.html')
 
-
 @csrf_exempt
 def auth_receiver(request):
     """
@@ -30,6 +29,8 @@ def auth_receiver(request):
 
 
     from users.models import User
+    from django.contrib.auth.models import User as DjangoUser
+    
     # Does user exist in database yet?
     if User.objects.filter(email=user_data['email']).exists():
         # User exists
@@ -46,6 +47,16 @@ def auth_receiver(request):
             is_new_user = True
         )
         user.save()
+
+    # Create or get Django User for messaging system
+    django_user, created = DjangoUser.objects.get_or_create(
+        username=user_data['email'],
+        defaults={
+            'email': user_data['email'],
+            'first_name': user_data.get('given_name', ''),
+            'last_name': user_data.get('family_name', ''),
+        }
+    )
 
     # List of admin email addresses
     ADMIN_EMAILS = [

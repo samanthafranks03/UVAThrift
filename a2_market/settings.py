@@ -60,6 +60,8 @@ if _csrf_origins:
 
 INSTALLED_APPS = [
     'daphne',
+    "a2_market",
+    "about.apps.AboutConfig",
     "login.apps.LoginConfig",
     "market.apps.MarketConfig",
     "users.apps.UsersConfig",
@@ -89,6 +91,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "a2_market.urls"
+LOGIN_URL = '/login/'
 
 TEMPLATES = [
     {

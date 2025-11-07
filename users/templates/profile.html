@@ -1,118 +1,40 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8"/>
-    <title>Profile</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
+{% extends "a2_market/base.html" %}
 
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="container p-4" style="max-width: 400px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
 
-        img {
-            border-radius: 50%;
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            margin-top: 10px;
-        }
+        <!-- Profile Picture -->
+        {% if request.session.user_data.picture %}
+        <img src="{{ request.session.user_data.picture }}" alt="Profile Picture" class="rounded-circle mb-3" style="width:120px; height:120px; object-fit: cover;">
+        {% endif %}
 
-        p {
-            color: #333;
-            margin: 10px 0;
-        }
+        <!-- Name & Email -->
+        <h2>{{ request.session.user_data.given_name }} {{ request.session.user_data.family_name }}</h2>
+        <p>Email: {{ request.session.user_data.email }}</p>
 
-        a {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        a:hover {
-            text-decoration: none;
-        }
-
-        .yellow-btn {
-            display: inline-block;
-            background-color: #ffd700;
-            color: #000;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            text-decoration: none;
-            margin: 10px;
-            transition: background-color 0.2s ease;
-        }
-
-        .yellow-btn:hover {
-            background-color: #ffcf33;
-        }
-
-        /* .myreviews-btn {
-            display: inline-block;
-            background-color: #ffd700;
-            color: #000;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            text-decoration: none;
-            margin: 10px;
-            transition: background-color 0.2s ease;
-        } */
-
-        .myreviews-btn:hover {
-            background-color: #ffcf33;
-        }
-    </style>
-</head>
-
-<body>
-<div class="container">
-    <h1>{{ object.name }}</h1>
-    <fieldset style="border: 1px black solid">
-
-        <legend style="border: 1px black solid;margin: 1em; padding: 0.5em 0.8em ">Bio</legend>
-
-        <p>{{ object.bio }}</p>
-    </fieldset>
-    <fieldset style="border: 1px black solid">
-
-        <legend style="border: 1px black solid;margin: 1em; padding: 0.5em 0.8em ">Interests</legend>
-
-        <p>{{ object.interests }}</p>
-    </fieldset>
-    {% if request.session.user_data and request.session.user_data.email == object.email and object.is_flagged %}
-        <div style="margin-top:12px;padding:10px;border-radius:6px;background:#ffe6e6;color:#a94442;font-weight:bold;">
+        <!-- Banned Notice -->
+        {% if request.session.user_data and request.session.user_data.email == object.email and object.is_flagged %}
+        <div class="mb-3 p-2 rounded" style="background:#ffe6e6; color:#a94442; font-weight:bold;">
             You are banned. Talk to an admin to get unbanned. :(
         </div>
-    {% endif %}
-<!-- CLEAN UP CSS STYLES BY SUBMISSION!!! -->
-    {% if request.session.is_admin %}
-        <p style="margin:1em">
-            <a href="/login/admin-panel/"
-               style="background:#ffd700;color:#000;margin:1em; padding:8px 16px;border-radius:5px;font-weight:bold;text-decoration:none;">Admin
-                Control Panel</a>
-        </p>
-    {% endif %}
+        {% endif %}
 
-    {% if request.session.user_data %}
-        <a href="/messaging/" class="yellow-btn">Messages</a>
-        <a href="/reviews/inbox/" class="yellow-btn">Reviews</a>
-        <a href="/posts/" class="yellow-btn">Posts</a>
-    {% endif %}
+        <!-- Admin Panel -->
+        {% if request.session.is_admin %}
+        <p>
+            <a href="/login/admin-panel/" class="btn btn-secondary">Admin Control Panel</a>
+        </p>
+        {% endif %}
+
+        <!-- User Posts -->
+        {% if request.session.user_data %}
+        <div class="d-flex flex-column gap-2 mt-3">
+            <h3>My Posts</h3>
+            <p>Add functionality for users to view/ delete their posts here</p>
+        </div>
+        {% endif %} 
+
+    </div>
 </div>
-</body>
-</html>
+{% endblock %}
