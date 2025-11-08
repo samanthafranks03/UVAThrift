@@ -28,6 +28,14 @@ if not GOOGLE_OAUTH_CLIENT_ID:
         'Have you put it in a file at a2_market/.env ?'
     )
 
+# AWS S3 configuration (optional)
+# These are read from the environment so views (like s3_presign) can
+# access the bucket name and boto3 can pick up credentials from env.
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_DEFAULT_REGION = os.environ.get('AWS_DEFAULT_REGION', 'us-east-1')
+
 SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 

@@ -14,7 +14,7 @@ class User(models.Model):
     # Extra Info
     bio = models.TextField(blank=True)
     interests = models.TextField(blank=True)
-    picture = models.URLField(blank=True)
+    picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True, default='default.jpg')
     # Moderation
     is_flagged = models.BooleanField(default=False)
     is_new_user = models.BooleanField(default=False)
@@ -53,5 +53,5 @@ class UserForm(forms.ModelForm):
         widgets = {
             "bio": forms.Textarea(attrs={"rows": 4, "placeholder": "Tell us about yourself..."}),
             "interests": forms.Textarea(attrs={"rows": 3, "placeholder": "Your hobbies, passions..."}),
-            "picture": forms.URLInput(attrs={"placeholder": "Link to your profile picture"}),
+            "picture": forms.ClearableFileInput(),
         }
