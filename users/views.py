@@ -11,6 +11,8 @@ from django.shortcuts import get_object_or_404
 import boto3
 import uuid
 import mimetypes
+from django.shortcuts import redirect
+from django.http import HttpResponseRedirect
 
 
 class UserProfileView(DetailView):
@@ -77,6 +79,43 @@ def s3_presign(request, hashed_email):
         return JsonResponse({'error': f'presign-failed: {e}'}, status=400)
 
     return JsonResponse({'url': url, 'key': key})
+
+
+def s3_serve_picture(request, hashed_email):
+    """Return a redirect to a public URL for the user's profile picture.
+
+    If S3 is configured, return a presigned GET URL that allows the browser
+    to fetch the object even if the bucket is private. Otherwise, fall back
+    to MEDIA_URL + stored key so the local dev server can serve it.
+    """
+    user = get_object_or_404(User, hashed_email=hashed_email)
+    # If no picture set, return 404-ish by redirecting to default or 404 page
+    if not user.picture:
+        # Redirect to default placeholder in MEDIA
+        try:
+            default = settings.MEDIA_URL + 'profile_pics/default.jpg'
+        except Exception:
+            default = '/static/a2_market/default.jpg'
+        return HttpResponseRedirect(default)
+
+    key = user.picture.name
+    bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
+    if bucket:
+        try:
+            s3 = boto3.client('s3')
+            url = s3.generate_presigned_url(
+                'get_object', Params={'Bucket': bucket, 'Key': key}, ExpiresIn=3600
+            )
+            return HttpResponseRedirect(url)
+        except Exception:
+            logging.getLogger(__name__).exception('failed to generate presigned GET for %s', key)
+            # fall through to MEDIA_URL fallback
+
+    # Fallback: serve via MEDIA_URL (works if you use local storage or have set up a proxy)
+    try:
+        return HttpResponseRedirect(settings.MEDIA_URL + key)
+    except Exception:
+        return HttpResponseRedirect('/')
 
 
 @require_http_methods(["POST"])

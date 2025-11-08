@@ -7,7 +7,7 @@
         <!-- Current profile picture (show at top of edit form) -->
         <div class="mb-3">
             {% if user.picture %}
-                <img id="profile-picture" src="{{ user.picture.url }}" alt="Profile Picture" class="rounded-circle mb-3" style="width:120px; height:120px; object-fit:cover;">
+                <img id="profile-picture" src="{% url 'user-picture' hashed_email=user.hashed_email %}" alt="Profile Picture" class="rounded-circle mb-3" style="width:120px; height:120px; object-fit:cover;">
             {% else %}
                 <img id="profile-picture" src="{{ MEDIA_URL }}profile_pics/default.jpg" alt="Profile Picture" class="rounded-circle mb-3" style="width:120px; height:120px; object-fit:cover;">
             {% endif %}
@@ -16,11 +16,10 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <!-- Picture change control directly under the profile picture -->
             <div class="mb-3 text-center">
                 <label class="form-label d-block">Change profile picture</label>
                 <div class="d-flex justify-content-center">
-                    {{ form.picture }}
+                    <input type="file" name="picture" id="id_picture" accept="image/*" class="form-control" />
                 </div>
                 <small class="form-text text-muted">Choose a file to upload (png, jpg, gif).</small>
                 {# Upload will happen when the user clicks 'Save changes' (form submit). #}
