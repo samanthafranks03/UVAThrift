@@ -83,6 +83,24 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
+# If AWS bucket is configured, enable django-storages S3 backend so
+# FileField/ImageField save to S3 automatically.
+if AWS_STORAGE_BUCKET_NAME:
+    # Add 'storages' app if available
+    if 'storages' not in INSTALLED_APPS:
+        INSTALLED_APPS.append('storages')
+
+    # Use django-storages S3 backend
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_S3_REGION_NAME = AWS_DEFAULT_REGION or None
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    # Keep objects private by default (recommended). Use presigned GET URLs to serve.
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = True
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
+
 # ------------------------------------------------------------------------------
 # Middleware (WhiteNoise added for static files on Heroku)
 # ------------------------------------------------------------------------------

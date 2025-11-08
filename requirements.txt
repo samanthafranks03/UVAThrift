@@ -13,3 +13,6 @@ whitenoise
 dj-database-url
 daphne
 channels
+
+django-storages[boto3]
+boto3
