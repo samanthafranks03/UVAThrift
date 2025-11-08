@@ -18,84 +18,87 @@
   <button type="button" id="upload-image-btn" class="btn btn-secondary">Upload picture</button>
   <button type="submit" id="submit-post-btn" class="btn btn-primary" disabled>Post</button>
 </form>
+  <script>
+  // Direct-to-S3 upload flow for posts (presign -> PUT -> notify server)
+  (function(){
+    document.addEventListener('DOMContentLoaded', function(){
+      var form = document.getElementById('create-post-form');
+      if (!form) return;
+      var fileInput = document.getElementById('id_image');
+      var uploadBtn = document.getElementById('upload-image-btn');
+      var submitBtn = document.getElementById('submit-post-btn');
+      var hint = document.getElementById('image-hint');
 
+      function setHint(msg){ if(hint) hint.textContent = msg; }
 
-</script>
+      uploadBtn.addEventListener('click', async function(){
+        var f = fileInput && fileInput.files && fileInput.files[0];
+        if (!f) { alert('Please choose a file first.'); return; }
+        uploadBtn.disabled = true; setHint('Requesting upload URL...');
+        try {
+          var signEndpoint = "{% url 'posts-s3-presign' hashed_email=request.session.user_data.hashed_email %}";
+          var q = '?filename=' + encodeURIComponent(f.name) + '&content_type=' + encodeURIComponent(f.type || 'application/octet-stream');
+          var r = await fetch(signEndpoint + q, { credentials: 'same-origin' });
+          if (!r.ok) throw new Error('presign failed: ' + r.status);
+          var j = await r.json();
+          var putUrl = j.url; var key = j.key;
+          setHint('Uploading to S3...');
+          var putResp = await fetch(putUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: f });
+          if (!putResp.ok) throw new Error('upload failed: ' + putResp.status);
+          setHint('Finalizing...');
+          var saveEndpoint = "{% url 'posts-set-image' hashed_email=request.session.user_data.hashed_email %}";
+          var csrf = document.querySelector('input[name=csrfmiddlewaretoken]') && document.querySelector('input[name=csrfmiddlewaretoken]').value;
+          var saveResp = await fetch(saveEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+            credentials: 'same-origin',
+            body: JSON.stringify({ key: key })
+          });
+          if (!saveResp.ok) throw new Error('save failed: ' + saveResp.status);
+          var saved = await saveResp.json();
+          // Attach hidden input with image_key
+          var existing = form.querySelector('input[name=image_key]');
+          if (existing) existing.value = saved.key;
+          else { var hidden = document.createElement('input'); hidden.type='hidden'; hidden.name='image_key'; hidden.value=saved.key; form.appendChild(hidden); }
+          setHint('Image uploaded. You can now post.');
+          submitBtn.disabled = false;
+        } catch (ex) {
+          console.error(ex); alert('Upload failed: ' + (ex.message || ex));
+          setHint('Upload failed.');
+          uploadBtn.disabled = false;
+        }
+      });
+
+      // keep submit disabled unless image_key present (safety)
+      form.addEventListener('submit', function(evt){
+        var hidden = form.querySelector('input[name=image_key]');
+        if (!hidden || !hidden.value) {
+          evt.preventDefault();
+          alert('Please upload an image before posting.');
+          return false;
+        }
+      });
+    });
+  })();
+  </script>
+
 {% else %}
 <p style="color:#444;">Please <a href="/login/">sign in</a> to create a post and upload pictures.</p>
-{% endif %}
-    var form = document.getElementById('create-post-form');
-    if (!form) return;
-    var fileInput = document.getElementById('id_image');
-    var uploadBtn = document.getElementById('upload-image-btn');
-    var submitBtn = document.getElementById('submit-post-btn');
-    var hint = document.getElementById('image-hint');
-
-    function setHint(msg){ if(hint) hint.textContent = msg; }
-
-    uploadBtn.addEventListener('click', async function(){
-      var f = fileInput && fileInput.files && fileInput.files[0];
-      if (!f) { alert('Please choose a file first.'); return; }
-      uploadBtn.disabled = true; setHint('Requesting upload URL...');
-      try {
-        var signEndpoint = "{% url 'posts-s3-presign' hashed_email=request.session.user_data.hashed_email %}";
-        var q = '?filename=' + encodeURIComponent(f.name) + '&content_type=' + encodeURIComponent(f.type || 'application/octet-stream');
-        var r = await fetch(signEndpoint + q, { credentials: 'same-origin' });
-        if (!r.ok) throw new Error('presign failed: ' + r.status);
-        var j = await r.json();
-        var putUrl = j.url; var key = j.key;
-        setHint('Uploading to S3...');
-        var putResp = await fetch(putUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: f });
-        if (!putResp.ok) throw new Error('upload failed: ' + putResp.status);
-        setHint('Finalizing...');
-        var saveEndpoint = "{% url 'posts-set-image' hashed_email=request.session.user_data.hashed_email %}";
-        var csrf = document.querySelector('input[name=csrfmiddlewaretoken]') && document.querySelector('input[name=csrfmiddlewaretoken]').value;
-        var saveResp = await fetch(saveEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
-          credentials: 'same-origin',
-          body: JSON.stringify({ key: key })
-        });
-        if (!saveResp.ok) throw new Error('save failed: ' + saveResp.status);
-        var saved = await saveResp.json();
-        // Attach hidden input with image_key
-        var existing = form.querySelector('input[name=image_key]');
-        if (existing) existing.value = saved.key;
-        else { var hidden = document.createElement('input'); hidden.type='hidden'; hidden.name='image_key'; hidden.value=saved.key; form.appendChild(hidden); }
-        setHint('Image uploaded. You can now post.');
-        submitBtn.disabled = false;
-      } catch (ex) {
-        console.error(ex); alert('Upload failed: ' + (ex.message || ex));
-        setHint('Upload failed.');
-        uploadBtn.disabled = false;
-      }
-    });
-
-    // keep submit disabled unless image_key present (safety)
-    form.addEventListener('submit', function(evt){
-      var hidden = form.querySelector('input[name=image_key]');
-      if (!hidden || !hidden.value) {
-        evt.preventDefault();
-        alert('Please upload an image before posting.');
-        return false;
-      }
-    });
-  });
-})();
-</script>
 {% endif %}
 
 <hr />
 
+<div class="posts-grid">
 {% for post in posts %}
-<div class="post">
-  <h3>{{ post.title }}</h3>
-  {% if post.image and post.image.name %}
-    <div class="post-image">
-      <img src="{% url 'post-image' post.id %}" alt="Post image" style="max-width:100%; height:auto; display:block; margin-bottom:8px;" />
-    </div>
-  {% endif %}
-  <p>{{ post.content }}</p>
+  <div class="post-card">
+      {% if post.image and post.image.name %}
+        <div class="post-image">
+          <img src="{% url 'post-image' post.id %}" alt="Post image" style="width:100%; height:160px; object-fit:contain; display:block;" />
+        </div>
+      {% endif %}
+      <div class="post-content">
+        <p>{{ post.content }}</p>
+      </div>
   <form
     method="POST"
     action="{% url 'messaging:send-message' post.author.id %}"
