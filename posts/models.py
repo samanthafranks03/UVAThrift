@@ -7,6 +7,8 @@ class Post(models.Model):
     content = models.TextField(max_length=1000)
     #Timestamp automatically set when post is created
     created_at = models.DateTimeField(auto_now_add=True)
+    # Optional image for post; will be required at the form level
+    image = models.ImageField(upload_to='post_images/', blank=True, null=True)
     #moderation flag
     is_flagged = models.BooleanField(default=False)
 

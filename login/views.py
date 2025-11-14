@@ -42,8 +42,9 @@ def auth_receiver(request):
         # Create new user
         user = User(
             name=user_data.get('given_name'),
+            nickname=user_data.get('given_name'),
             email=user_data.get('email'),
-            picture_url=user_data.get('picture'),
+            picture=user_data.get('picture'),
             is_new_user = True
         )
         user.save()
