@@ -1,0 +1,123 @@
+{% extends "a2_market/base.html" %}
+
+{% block content %}
+
+  {% if request.session.user_data %}
+    <div>
+      <!-- <p>Welcome, {{ request.session.user_data.given_name }}</p>
+      <p>You are currently viewing the market as: {% if request.session.is_admin %}admin{% else %}user{% endif %}</p> 
+      <img src="{{ request.session.user_data.picture }}" alt="User picture" width="100"/> -->
+      <p> </p>
+    </div>
+  {% else %}
+    <div>
+      <p>Hello Guest User! You are currently not signed in.</p>
+      <p>Click here to <a href="/login">sign in.</a></p>
+    </div>
+  {% endif %}
+
+  <hr />
+
+  {% if can_post %}
+    <form method="post" action="{% url 'create_post' %}" enctype="multipart/form-data" id="create-post-form">
+      {% csrf_token %}
+      <textarea name="content" rows="3" cols="50" placeholder="Write something..." required></textarea><br/>
+      <label for="id_image">Attach image (required)</label>
+      <input type="file" name="image" id="id_image" accept="image/*" />
+      <br />
+      <small id="image-hint" style="color:#666;">You must attach an image before posting.</small>
+      <br />
+      <button type="button" id="upload-image-btn" class="btn btn-secondary">Upload picture</button>
+      <button type="submit" id="submit-post-btn" class="btn btn-primary" disabled>Post</button>
+    </form>
+
+    <script>
+    // Direct-to-S3 upload flow for posts (presign -> PUT -> notify server)
+    (function(){
+      document.addEventListener('DOMContentLoaded', function(){
+        var form = document.getElementById('create-post-form');
+        if (!form) return;
+        var fileInput = document.getElementById('id_image');
+        var uploadBtn = document.getElementById('upload-image-btn');
+        var submitBtn = document.getElementById('submit-post-btn');
+        var hint = document.getElementById('image-hint');
+
+        function setHint(msg){ if(hint) hint.textContent = msg; }
+
+        uploadBtn.addEventListener('click', async function(){
+          var f = fileInput && fileInput.files && fileInput.files[0];
+          if (!f) { alert('Please choose a file first.'); return; }
+          uploadBtn.disabled = true; setHint('Requesting upload URL...');
+          try {
+            var signEndpoint = "{% url 'posts-s3-presign' hashed_email=user.hashed_email %}";
+            var q = '?filename=' + encodeURIComponent(f.name) + '&content_type=' + encodeURIComponent(f.type || 'application/octet-stream');
+            var r = await fetch(signEndpoint + q, { credentials: 'same-origin' });
+            if (!r.ok) throw new Error('presign failed: ' + r.status);
+            var j = await r.json();
+            var putUrl = j.url; var key = j.key;
+            setHint('Uploading to S3...');
+            var putResp = await fetch(putUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: f });
+            if (!putResp.ok) throw new Error('upload failed: ' + putResp.status);
+            setHint('Finalizing...');
+            var saveEndpoint = "{% url 'posts-set-image' hashed_email=user.hashed_email %}";
+            var csrf = document.querySelector('input[name=csrfmiddlewaretoken]') && document.querySelector('input[name=csrfmiddlewaretoken]').value;
+            var saveResp = await fetch(saveEndpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+              credentials: 'same-origin',
+              body: JSON.stringify({ key: key })
+            });
+            if (!saveResp.ok) throw new Error('save failed: ' + saveResp.status);
+            var saved = await saveResp.json();
+            // Attach hidden input with image_key
+            var existing = form.querySelector('input[name=image_key]');
+            if (existing) existing.value = saved.key;
+            else { var hidden = document.createElement('input'); hidden.type='hidden'; hidden.name='image_key'; hidden.value=saved.key; form.appendChild(hidden); }
+            setHint('Image uploaded. You can now post.');
+            submitBtn.disabled = false;
+          } catch (ex) {
+            console.error(ex); alert('Upload failed: ' + (ex.message || ex));
+            setHint('Upload failed.');
+            uploadBtn.disabled = false;
+          }
+        });
+
+        // keep submit disabled unless image_key present (safety)
+        form.addEventListener('submit', function(evt){
+          var hidden = form.querySelector('input[name=image_key]');
+          if (!hidden || !hidden.value) {
+            evt.preventDefault();
+            alert('Please upload an image before posting.');
+            return false;
+          }
+        });
+      });
+    })();
+    </script>
+  {% elif user %}
+    <p style="color: red">You are banned and cannot post.</p>
+  {% else %}
+    <p><a href="/login/">Sign in</a> to make a post.</p>
+  {% endif %}
+
+  <hr />
+
+  <h2>Recent Posts</h2>
+  <div class="posts-grid">
+  {% for post in posts %}
+    <div class="post-card">
+      {% if post.image and post.image.name %}
+        <div class="post-image">
+          <img src="{% url 'post-image' post.id %}" alt="Post image" style="width:100%; height:160px; object-fit:contain; display:block;" />
+        </div>
+      {% endif %}
+      <div class="post-content">
+        <p>{{ post.content }}</p>
+        <small>Posted on {{ post.created_at }}</small>
+      </div>
+    </div>
+  {% empty %}
+    <p>No posts yet. Be the first to post something!</p>
+  {% endfor %}
+  </div>
+{% endblock %}

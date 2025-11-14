@@ -1,0 +1,124 @@
+{% extends "a2_market/base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="container p-4" style="max-width: 600px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
+        {% if request.session.user_data.email == user.email %}
+        <!-- Current profile picture (show at top of edit form) -->
+        <div class="mb-3">
+            {% if user.picture %}
+                <img id="profile-picture" src="{% url 'user-picture' hashed_email=user.hashed_email %}" alt="Profile Picture" class="rounded-circle mb-3" style="width:120px; height:120px; object-fit:cover;">
+            {% else %}
+                <img id="profile-picture" src="{{ MEDIA_URL }}profile_pics/default.jpg" alt="Profile Picture" class="rounded-circle mb-3" style="width:120px; height:120px; object-fit:cover;">
+            {% endif %}
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-3 text-center">
+                <label class="form-label d-block">Change profile picture</label>
+                <div class="d-flex justify-content-center">
+                    <input type="file" name="picture" id="id_picture" accept="image/*" class="form-control" />
+                </div>
+                <small class="form-text text-muted">Choose a file to upload (png, jpg, gif).</small>
+                {# Upload will happen when the user clicks 'Save changes' (form submit). #}
+            </div>
+
+            <!-- Render the rest of the form (exclude picture which is shown above) -->
+            <div>
+            {% for field in form %}
+                {% if field.name != 'picture' %}
+                    <div class="mb-2 text-start">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for err in field.errors %}
+                            <div class="text-danger">{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            </div>
+
+            <script>
+            // Show an immediate preview when selecting a new file
+            (function(){
+                function getById(id){ return document.getElementById(id); }
+                document.addEventListener('DOMContentLoaded', function(){
+                    var fileInput = document.querySelector('input[type=file][name$="picture"]');
+                    var img = getById('profile-picture');
+                    var status = null;
+                    if (!fileInput || !img) return;
+                    fileInput.addEventListener('change', function(e){
+                        var f = e.target.files && e.target.files[0];
+                        if (!f) return;
+                        var reader = new FileReader();
+                        reader.onload = function(ev){ img.src = ev.target.result; };
+                        reader.readAsDataURL(f);
+                    });
+
+                    // Intercept the form submit: if a file is selected, presign -> PUT -> notify server
+                    var form = document.querySelector('form[enctype="multipart/form-data"]');
+                    if (!form) return;
+                    form.addEventListener('submit', async function(evt){
+                        var f = fileInput.files && fileInput.files[0];
+                        if (!f) return; // no file selected, allow normal submit
+                        evt.preventDefault();
+                        // disable submit button
+                        var submitBtn = form.querySelector('button[type=submit]');
+                        if (submitBtn) submitBtn.disabled = true;
+                        try {
+                            if (status) status.textContent = 'Requesting upload URL...';
+                            var signEndpoint = "{% url 's3-presign' hashed_email=user.hashed_email %}";
+                            var q = '?filename=' + encodeURIComponent(f.name) + '&content_type=' + encodeURIComponent(f.type || 'application/octet-stream');
+                            var r = await fetch(signEndpoint + q, { credentials: 'same-origin' });
+                            if (!r.ok) throw new Error('presign failed: ' + r.status);
+                            var j = await r.json();
+                            var putUrl = j.url;
+                            var key = j.key;
+                            if (status) status.textContent = 'Uploading to S3...';
+                            var putResp = await fetch(putUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: f });
+                            if (!putResp.ok) throw new Error('upload failed: ' + putResp.status);
+                            if (status) status.textContent = 'Finalizing...';
+                            var saveEndpoint = "{% url 'set-profile-picture' hashed_email=user.hashed_email %}";
+                            var csrf = document.querySelector('input[name=csrfmiddlewaretoken]') && document.querySelector('input[name=csrfmiddlewaretoken]').value;
+                            var saveResp = await fetch(saveEndpoint, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': csrf,
+                                },
+                                credentials: 'same-origin',
+                                body: JSON.stringify({ key: key })
+                            });
+                            if (!saveResp.ok) throw new Error('save failed: ' + saveResp.status);
+                            var saved = await saveResp.json();
+                            if (img) img.src = saved.url + (saved.url.indexOf('?') === -1 ? '?' : '&') + 'ts=' + Date.now();
+                            // clear file input so the form does not re-upload the file
+                            try { fileInput.value = ''; } catch (e) {}
+                            // submit the form to save other fields
+                            form.submit();
+                        } catch (ex) {
+                            console.error(ex);
+                            alert('Upload failed: ' + (ex.message || ex));
+                            if (submitBtn) submitBtn.disabled = false;
+                        }
+                    });
+                });
+            })();
+            </script>
+            <div class="d-flex gap-2 justify-content-center mt-3">
+                <button type="submit" class="btn btn-primary">Save changes</button>
+                <a href="{{ object.get_absolute_url }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+
+        {% else %}
+            <p>You cannot edit this profile.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
