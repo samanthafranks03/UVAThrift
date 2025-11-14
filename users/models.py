@@ -1,17 +1,20 @@
 import hashlib
+from django import forms
 from django.db import models
 from django.urls import reverse
+from messaging.models import Notification  
 
 
 class User(models.Model):
     # Personal Info
     name = models.CharField(max_length=100, default="John Doe")
+    nickname = models.CharField(max_length=100, blank=True)
     email = models.EmailField(unique=True, primary_key=True)
     hashed_email = models.CharField(max_length=10, unique=True)  # Should be a unique hash per user
     # Extra Info
     bio = models.TextField(blank=True)
     interests = models.TextField(blank=True)
-    picture_url = models.URLField(blank=True)
+    picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True, default='default.jpg')
     # Moderation
     is_flagged = models.BooleanField(default=False)
     is_new_user = models.BooleanField(default=False)
@@ -35,6 +38,20 @@ class Admin(User):
         print("Banning user: " + target_user + "!\n")
 
 
-from django.db import models
-
-# Create your models here.
+class UserForm(forms.ModelForm):
+    class Meta:
+        model = User
+        # Choose fields that a user should be able to edit
+        fields = [
+            "name",
+            "nickname",
+            "bio",
+            "interests",
+            "picture",
+        ]
+        # Optional: add widgets for nicer rendering
+        widgets = {
+            "bio": forms.Textarea(attrs={"rows": 4, "placeholder": "Tell us about yourself..."}),
+            "interests": forms.Textarea(attrs={"rows": 3, "placeholder": "Your hobbies, passions..."}),
+            "picture": forms.ClearableFileInput(),
+        }

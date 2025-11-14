@@ -18,7 +18,6 @@ from google.auth.transport import requests
 def sign_in(request):
     return render(request, 'sign_in.html')
 
-
 @csrf_exempt
 def auth_receiver(request):
     """
@@ -45,7 +44,7 @@ def auth_receiver(request):
         'nadellasrikar@gmail.com',
         'daniel815jimenez@gmail.com'
     ]
-    
+
     request.session['user_data'] = user_data
     request.session['user_URL'] = user.get_absolute_url()
     request.session['is_admin'] = user_data['email'] in ADMIN_EMAILS
@@ -55,6 +54,8 @@ def auth_receiver(request):
 
 def add_update_user(user_data: dict[str, Any]):
     from users.models import User
+    from django.contrib.auth.models import User as DjangoUser
+
     # Does user exist in database yet?
     if User.objects.filter(email=user_data['email']).exists():
         # User exists
@@ -66,11 +67,22 @@ def add_update_user(user_data: dict[str, Any]):
         # Create new user
         user = User(
             name=user_data.get('given_name'),
+            nickname=user_data.get('given_name'),
             email=user_data.get('email'),
-            picture_url=user_data.get('picture'),
+            picture=user_data.get('picture'),
             is_new_user = True
         )
         user.save()
+
+    # Create or get Django User for messaging system
+    django_user, created = DjangoUser.objects.get_or_create(
+        username=user_data['email'],
+        defaults={
+            'email': user_data['email'],
+            'first_name': user_data.get('given_name', ''),
+            'last_name': user_data.get('family_name', ''),
+        }
+    )
 
     return user
 
@@ -90,8 +102,22 @@ def admin_panel(request):
     # Only allow admins
     if not request.session.get('is_admin', False):
         return HttpResponse('Forbidden', status=403)
+
+    # Get all users
     users = User.objects.all()
-    return render(request, 'admin_panel.html', {'users': users})
+
+    # Get flagged posts count
+    from posts.models import Post, PostFlag
+    from django.db.models import Count
+    flagged_posts_count = Post.objects.annotate(
+        flag_count_db=Count('postflag')
+    ).filter(flag_count_db__gt=0).count()
+
+    context = {
+        'users': users,
+        'flagged_posts_count': flagged_posts_count
+    }
+    return render(request, 'admin_panel.html', context)
 
 
 @csrf_protect

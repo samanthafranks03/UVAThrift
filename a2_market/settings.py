@@ -28,6 +28,14 @@ if not GOOGLE_OAUTH_CLIENT_ID:
         'Have you put it in a file at a2_market/.env ?'
     )
 
+# AWS S3 configuration (optional)
+# These are read from the environment so views (like s3_presign) can
+# access the bucket name and boto3 can pick up credentials from env.
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_DEFAULT_REGION = os.environ.get('AWS_DEFAULT_REGION', 'us-east-1')
+
 SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
@@ -59,9 +67,14 @@ if _csrf_origins:
 # ------------------------------------------------------------------------------
 
 INSTALLED_APPS = [
+    'daphne',
+    "a2_market",
+    "about.apps.AboutConfig",
     "login.apps.LoginConfig",
     "market.apps.MarketConfig",
     "users.apps.UsersConfig",
+    "posts.apps.PostsConfig",
+    "messaging.apps.MessagingConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -69,6 +82,24 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
+
+# If AWS bucket is configured, enable django-storages S3 backend so
+# FileField/ImageField save to S3 automatically.
+if AWS_STORAGE_BUCKET_NAME:
+    # Add 'storages' app if available
+    if 'storages' not in INSTALLED_APPS:
+        INSTALLED_APPS.append('storages')
+
+    # Use django-storages S3 backend
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_S3_REGION_NAME = AWS_DEFAULT_REGION or None
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    # Keep objects private by default (recommended). Use presigned GET URLs to serve.
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = True
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
 
 # ------------------------------------------------------------------------------
 # Middleware (WhiteNoise added for static files on Heroku)
@@ -86,6 +117,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "a2_market.urls"
+LOGIN_URL = '/login/'
 
 TEMPLATES = [
     {
@@ -103,6 +135,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "a2_market.wsgi.application"
+
+#for da messaging
+ASGI_APPLICATION = "a2_market.asgi.application"
 
 # ------------------------------------------------------------------------------
 # Database

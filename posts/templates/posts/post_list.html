@@ -1,0 +1,244 @@
+{% extends "a2_market/base.html" %}
+
+{% block css %}
+<style>
+  .flag-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 5px;
+    border-radius: 3px;
+  }
+
+  .flag-icon {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    display: inline-block;
+  }
+
+  .flag-icon::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0;
+    width: 2px;
+    height: 20px;
+    background-color: #6c757d;
+    border-radius: 1px;
+  }
+
+  .flag-icon::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 2px;
+    width: 12px;
+    height: 8px;
+    border: 2px solid #6c757d;
+    border-left: none;
+    background-color: transparent;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .flag-btn.flagged .flag-icon::before {
+    background-color: #dc3545;
+  }
+
+  .flag-btn.flagged .flag-icon::after {
+    background-color: #dc3545;
+    border-color: #dc3545;
+  }
+
+  .flag-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .flag-btn:hover .flag-icon::after {
+    background-color: rgba(220, 53, 69, 0.2);
+  }
+
+  .flag-btn.flagged:hover .flag-icon::after {
+    background-color: #c82333;
+  }
+
+  .post-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .flag-count {
+    font-size: 12px;
+    color: #6c757d;
+    margin-left: 5px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>Community Feed</h2>
+
+{% if request.session.user_data %}
+<form method="post" action="{% url 'create_post' %}" enctype="multipart/form-data" id="create-post-form">
+  {% csrf_token %}
+  <textarea
+    name="content"
+    rows="3"
+    placeholder="Write something..."
+    required
+  ></textarea>
+  <br />
+  <label for="id_image">Attach image (required)</label>
+  <input type="file" name="image" id="id_image" accept="image/*" />
+  <br />
+  <small id="image-hint" style="color:#666;">You must attach an image before posting.</small>
+  <br />
+  <button type="button" id="upload-image-btn" class="btn btn-secondary">Upload picture</button>
+  <button type="submit" id="submit-post-btn" class="btn btn-primary" disabled>Post</button>
+</form>
+  <script>
+  // Direct-to-S3 upload flow for posts (presign -> PUT -> notify server)
+  (function(){
+    document.addEventListener('DOMContentLoaded', function(){
+      var form = document.getElementById('create-post-form');
+      if (!form) return;
+      var fileInput = document.getElementById('id_image');
+      var uploadBtn = document.getElementById('upload-image-btn');
+      var submitBtn = document.getElementById('submit-post-btn');
+      var hint = document.getElementById('image-hint');
+
+      function setHint(msg){ if(hint) hint.textContent = msg; }
+
+      uploadBtn.addEventListener('click', async function(){
+        var f = fileInput && fileInput.files && fileInput.files[0];
+        if (!f) { alert('Please choose a file first.'); return; }
+        uploadBtn.disabled = true; setHint('Requesting upload URL...');
+        try {
+          var signEndpoint = "{% url 'posts-s3-presign' hashed_email=request.session.user_data.hashed_email %}";
+          var q = '?filename=' + encodeURIComponent(f.name) + '&content_type=' + encodeURIComponent(f.type || 'application/octet-stream');
+          var r = await fetch(signEndpoint + q, { credentials: 'same-origin' });
+          if (!r.ok) throw new Error('presign failed: ' + r.status);
+          var j = await r.json();
+          var putUrl = j.url; var key = j.key;
+          setHint('Uploading to S3...');
+          var putResp = await fetch(putUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: f });
+          if (!putResp.ok) throw new Error('upload failed: ' + putResp.status);
+          setHint('Finalizing...');
+          var saveEndpoint = "{% url 'posts-set-image' hashed_email=request.session.user_data.hashed_email %}";
+          var csrf = document.querySelector('input[name=csrfmiddlewaretoken]') && document.querySelector('input[name=csrfmiddlewaretoken]').value;
+          var saveResp = await fetch(saveEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+            credentials: 'same-origin',
+            body: JSON.stringify({ key: key })
+          });
+          if (!saveResp.ok) throw new Error('save failed: ' + saveResp.status);
+          var saved = await saveResp.json();
+          // Attach hidden input with image_key
+          var existing = form.querySelector('input[name=image_key]');
+          if (existing) existing.value = saved.key;
+          else { var hidden = document.createElement('input'); hidden.type='hidden'; hidden.name='image_key'; hidden.value=saved.key; form.appendChild(hidden); }
+          setHint('Image uploaded. You can now post.');
+          submitBtn.disabled = false;
+        } catch (ex) {
+          console.error(ex); alert('Upload failed: ' + (ex.message || ex));
+          setHint('Upload failed.');
+          uploadBtn.disabled = false;
+        }
+      });
+
+      // keep submit disabled unless image_key present (safety)
+      form.addEventListener('submit', function(evt){
+        var hidden = form.querySelector('input[name=image_key]');
+        if (!hidden || !hidden.value) {
+          evt.preventDefault();
+          alert('Please upload an image before posting.');
+          return false;
+        }
+      });
+    });
+  })();
+  </script>
+
+{% else %}
+<p style="color:#444;">Please <a href="/login/">sign in</a> to create a post and upload pictures.</p>
+{% endif %}
+
+<hr />
+
+{% for post in posts %}
+<div class="post border p-2 mb-2">
+  <h3>{{ post.title }}</h3>
+  <p>{{ post.content }}</p>
+  <div class="post-actions">
+    <small>Posted by {{ post.author.name }} on {{ post.created_at }}</small>
+    {% if current_user and current_user != post.author %}
+      <button class="flag-btn {% if post.is_flagged_by_current_user %}flagged{% endif %}"
+              data-post-id="{{ post.id }}"
+              onclick="toggleFlag({{ post.id }}, this)"
+              title="{% if post.is_flagged_by_current_user %}Remove flag{% else %}Flag post{% endif %}">
+        <span class="flag-icon"></span>
+      </button>
+      <span class="flag-count" id="flag-count-{{ post.id }}">
+        {% if post.flag_count > 0 %}{{ post.flag_count }}{% endif %}
+      </span>
+    {% endif %}
+  </div>
+  <form
+    method="POST"
+    action="{% url 'messaging:send-message' post.author.id %}"
+  >
+    {% csrf_token %}
+    <input
+      type="text"
+      name="content"
+      placeholder="Write your message..."
+      required
+    />
+    <button type="submit">Message {{ post.author.username }}</button>
+  </form>
+</div>
+{% endfor %}
+
+<script>
+function toggleFlag(postId, buttonElement) {
+  fetch(`/posts/flag/${postId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Toggle button appearance
+      if (data.is_flagged) {
+        buttonElement.classList.add('flagged');
+        buttonElement.title = 'Remove flag';
+      } else {
+        buttonElement.classList.remove('flagged');
+        buttonElement.title = 'Flag post';
+      }
+
+      // Update flag count
+      const flagCountElement = document.getElementById(`flag-count-${postId}`);
+      if (data.flag_count > 0) {
+        flagCountElement.textContent = data.flag_count;
+      } else {
+        flagCountElement.textContent = '';
+      }
+    } else {
+      alert(data.error || 'An error occurred');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred while flagging the post');
+  });
+}
+</script>
+{% endblock %}

@@ -11,3 +11,9 @@ gunicorn
 django_heroku
 whitenoise
 dj-database-url
+daphne
+channels
+Pillow
+
+django-storages[boto3]
+boto3
