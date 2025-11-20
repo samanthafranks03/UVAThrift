@@ -13,6 +13,7 @@ import uuid
 import mimetypes
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
+from django.contrib import messages
 
 
 class UserProfileView(DetailView):
@@ -20,6 +21,13 @@ class UserProfileView(DetailView):
     template_name = "profile.html"
     slug_field = "hashed_email"
     slug_url_kwarg = "hashed_email"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get all posts by this user, ordered by most recent first
+        from posts.models import Post
+        context['user_posts'] = Post.objects.filter(author=self.object).order_by('-created_at')
+        return context
 
 
 class EditProfileView(UpdateView):
@@ -156,3 +164,26 @@ def set_profile_picture(request, hashed_email):
         url = key
 
     return JsonResponse({'ok': True, 'url': url, 'key': key})
+
+
+@require_http_methods(["POST"])
+def delete_post(request, hashed_email, post_id):
+    """Delete a post if the user owns it."""
+    session_user = request.session.get('user_data', {})
+    if not session_user or session_user.get('email') is None:
+        messages.error(request, 'You must be signed in to delete posts.')
+        return redirect('/login/')
+    
+    user = get_object_or_404(User, hashed_email=hashed_email)
+    if session_user.get('email') != user.email:
+        messages.error(request, 'You can only delete your own posts.')
+        return redirect('user-profile', hashed_email=hashed_email)
+    
+    from posts.models import Post
+    post = get_object_or_404(Post, id=post_id, author=user)
+    
+    # Delete the post
+    post.delete()
+    messages.success(request, 'Post deleted successfully.')
+    
+    return redirect('user-profile', hashed_email=hashed_email)
