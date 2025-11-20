@@ -189,6 +189,11 @@
       <span class="flag-count" id="flag-count-{{ post.id }}">
         {% if post.flag_count > 0 %}{{ post.flag_count }}{% endif %}
       </span>
+    {% elif current_user and current_user == post.author %}
+      <form method="post" action="{% url 'delete-post' hashed_email=post.author.hashed_email post_id=post.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+      </form>
     {% endif %}
   </div>
   <form
