@@ -21,6 +21,7 @@ from django.views.generic import RedirectView
 
 
 urlpatterns = [
+    path('', RedirectView.as_view(url='/market/', permanent=False)),
     path('about/', include('about.urls')),
     path('admin/', admin.site.urls),
     path('market/', include('market.urls')),
@@ -30,5 +31,4 @@ urlpatterns = [
     path('messaging/', include('messaging.urls', namespace='messaging')),
     path('messages/', RedirectView.as_view(url='/messaging/', permanent=True)),
     path('messages/<path:extra>/', RedirectView.as_view(url='/messaging/', permanent=True)),
-    path('messaging/', include('messaging.urls')),
 ] 
