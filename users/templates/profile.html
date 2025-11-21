@@ -15,16 +15,6 @@
             <h2>{{ user.nickname }}</h2>
             <p>Name: {{ user.name }}</p>
             <p>Email: {{ user.email }}</p>
-            
-            <!-- Debug Info -->
-            <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-size: 12px; text-align: left;">
-                <strong>Debug Info:</strong><br>
-                user.email: {{ user.email }}<br>
-                object.email: {{ object.email }}<br>
-                request.session.user_data.email: {{ request.session.user_data.email }}<br>
-                request.session.is_admin: {{ request.session.is_admin }}<br>
-                Match check: {{ object.email }} == heba.ahmed.ha1215@gmail.com<br>
-            </div>
 
             <!-- Banned Notice -->
             {% if request.session.user_data and request.session.user_data.email == object.email and object.is_flagged %}
