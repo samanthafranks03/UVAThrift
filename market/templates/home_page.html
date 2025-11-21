@@ -185,7 +185,7 @@
   <div class="posts-grid">
   {% for post in posts %}
     <div class="border p-2 mb-2">
-      <strong><a href="/users/{{ post.id_hash }}">{{ post.author.name }}</a></strong>
+      <strong><a href="/users/{{ post.author.hashed_email }}">{{ post.author.nickname }}</a></strong>
       {% if post.image %}
       <img src="{% url 'post-image' post.id %}" alt="Post image" style="max-width: 100%; height: auto; margin-bottom: 10px;" />
       {% endif %}

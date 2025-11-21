@@ -5,8 +5,6 @@ from django.db import models
 class Post(models.Model):
     #The user who wrote the post
     author = models.ForeignKey('users.User', on_delete=models.CASCADE)
-    # hashed_email value in a User
-    id_hash = models.CharField(max_length=10, unique=False, default=uuid.uuid4)
     #Text content of the post
     content = models.TextField(max_length=1000)
     #Timestamp automatically set when post is created
@@ -30,11 +28,6 @@ class Post(models.Model):
     def is_flagged_by_user(self, user):
         #Check if a specific user has flagged this post
         return self.postflag_set.filter(user=user).exists()
-
-    def save(self, *args, **kwargs):
-        if not self.id_hash:
-            self.id_hash = self.author.hashed_email
-        super().save(*args, **kwargs)
 
 
 class PostFlag(models.Model):
