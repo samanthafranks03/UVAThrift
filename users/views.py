@@ -25,8 +25,31 @@ class UserProfileView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Get all posts by this user, ordered by most recent first
-        from posts.models import Post
+        from posts.models import Post, PostFlag
+        from django.db.models import Count
         context['user_posts'] = Post.objects.filter(author=self.object).order_by('-created_at')
+        
+        # If viewing user is an admin and this is their own profile, add admin panel data
+        session_user = self.request.session.get('user_data', {})
+        is_admin = self.request.session.get('is_admin', False)
+        
+        # Check both session is_admin flag AND if viewing own profile
+        if is_admin and session_user.get('email') == self.object.email and self.object.is_admin:
+            # Get all users for user management
+            context['all_users'] = User.objects.all().order_by('name')
+            
+            # Get flagged posts with flag count
+            flagged_posts = Post.objects.annotate(
+                flag_count_db=Count('postflag')
+            ).filter(flag_count_db__gt=0).select_related('author').order_by('-flag_count_db')
+            
+            # Add flag details to each post
+            for post in flagged_posts:
+                post.flags = PostFlag.objects.filter(post=post).select_related('user')
+            
+            context['flagged_posts'] = flagged_posts
+            context['show_admin_panel'] = True
+        
         return context
 
 
@@ -187,3 +210,254 @@ def delete_post(request, hashed_email, post_id):
     messages.success(request, 'Post deleted successfully.')
     
     return redirect('user-profile', hashed_email=hashed_email)
+
+
+@require_http_methods(["POST"])
+def admin_ban_user_profile(request, hashed_email):
+    """Admin action to ban a user from profile admin panel"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('user-profile', hashed_email=hashed_email)
+    
+    target_email = request.POST.get('email')
+    try:
+        target_user = User.objects.get(email=target_email)
+        target_user.is_flagged = True
+        target_user.save()
+        messages.success(request, f'User {target_user.name} has been banned.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    
+    return redirect('user-profile', hashed_email=hashed_email)
+
+
+@require_http_methods(["POST"])
+def admin_unban_user_profile(request, hashed_email):
+    """Admin action to unban a user from profile admin panel"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('user-profile', hashed_email=hashed_email)
+    
+    target_email = request.POST.get('email')
+    try:
+        target_user = User.objects.get(email=target_email)
+        target_user.is_flagged = False
+        target_user.save()
+        messages.success(request, f'User {target_user.name} has been unbanned.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    
+    return redirect('user-profile', hashed_email=hashed_email)
+
+
+@require_http_methods(["POST"])
+def admin_delete_post_profile(request, hashed_email, post_id):
+    """Admin action to delete a flagged post from profile admin panel"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('user-profile', hashed_email=hashed_email)
+    
+    from posts.models import Post
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        post_content = post.content[:50] + "..." if len(post.content) > 50 else post.content
+        post.delete()
+        messages.success(request, f'Post deleted successfully: "{post_content}"')
+    except Exception as e:
+        messages.error(request, f'Error deleting post: {str(e)}')
+    
+    return redirect('user-profile', hashed_email=hashed_email)
+
+
+@require_http_methods(["POST"])
+def admin_dismiss_flags_profile(request, hashed_email, post_id):
+    """Admin action to dismiss all flags for a post from profile admin panel"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('user-profile', hashed_email=hashed_email)
+    
+    from posts.models import Post, PostFlag
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        flag_count = post.flag_count()
+        PostFlag.objects.filter(post=post).delete()
+        messages.success(request, f'Dismissed {flag_count} flag(s) for post.')
+    except Exception as e:
+        messages.error(request, f'Error dismissing flags: {str(e)}')
+    
+    return redirect('user-profile', hashed_email=hashed_email)
+
+
+@require_http_methods(["POST"])
+def admin_ban_and_delete_profile(request, hashed_email, post_id):
+    """Admin action to ban user and delete their post from profile admin panel"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('user-profile', hashed_email=hashed_email)
+    
+    from posts.models import Post
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        target_user = post.author
+        post_content = post.content[:50] + "..." if len(post.content) > 50 else post.content
+        
+        # Ban the user
+        target_user.is_flagged = True
+        target_user.save()
+        
+        # Delete the post
+        post.delete()
+        
+        messages.success(request, f'User "{target_user.name}" has been banned and their post deleted: "{post_content}"')
+    except Exception as e:
+        messages.error(request, f'Error banning user and deleting post: {str(e)}')
+    
+    return redirect('user-profile', hashed_email=hashed_email)
+
+
+########## Admin Control Panel ##########
+
+from django.views.decorators.csrf import csrf_protect
+
+@csrf_protect
+def admin_control_panel(request):
+    """Admin control panel with tabs for user management and flagged posts"""
+    # Check if user is admin
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('/')
+    
+    from posts.models import Post, PostFlag
+    from django.db.models import Count
+    
+    # Get all users for user management
+    all_users = User.objects.all().order_by('name')
+    
+    # Get flagged posts with flag count
+    flagged_posts = Post.objects.annotate(
+        flag_count_db=Count('postflag')
+    ).filter(flag_count_db__gt=0).select_related('author').order_by('-flag_count_db')
+    
+    # Add flag details to each post
+    for post in flagged_posts:
+        post.flags = PostFlag.objects.filter(post=post).select_related('user')
+    
+    context = {
+        'all_users': all_users,
+        'flagged_posts': flagged_posts,
+    }
+    
+    return render(request, 'admin_control_panel.html', context)
+
+
+@csrf_protect
+@require_http_methods(["POST"])
+def admin_ban_user_panel(request):
+    """Ban a user from admin control panel"""
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('/')
+    
+    email = request.POST.get('email')
+    try:
+        user = User.objects.get(email=email)
+        user.is_flagged = True
+        user.save()
+        messages.success(request, f'User {user.name} has been banned.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    
+    return redirect('admin_control_panel')
+
+
+@csrf_protect
+@require_http_methods(["POST"])
+def admin_unban_user_panel(request):
+    """Unban a user from admin control panel"""
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('/')
+    
+    email = request.POST.get('email')
+    try:
+        user = User.objects.get(email=email)
+        user.is_flagged = False
+        user.save()
+        messages.success(request, f'User {user.name} has been unbanned.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    
+    return redirect('admin_control_panel')
+
+
+@csrf_protect
+@require_http_methods(["POST"])
+def admin_delete_post_panel(request, post_id):
+    """Delete a flagged post from admin control panel"""
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('/')
+    
+    from posts.models import Post
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        post_content = post.content[:50] + "..." if len(post.content) > 50 else post.content
+        post.delete()
+        messages.success(request, f'Post deleted: "{post_content}"')
+    except Exception as e:
+        messages.error(request, f'Error deleting post: {str(e)}')
+    
+    return redirect('admin_control_panel')
+
+
+@csrf_protect
+@require_http_methods(["POST"])
+def admin_dismiss_flags_panel(request, post_id):
+    """Dismiss all flags for a post from admin control panel"""
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('/')
+    
+    from posts.models import Post, PostFlag
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        flag_count = post.flag_count()
+        PostFlag.objects.filter(post=post).delete()
+        messages.success(request, f'Dismissed {flag_count} flag(s) for post.')
+    except Exception as e:
+        messages.error(request, f'Error dismissing flags: {str(e)}')
+    
+    return redirect('admin_control_panel')
+
+
+@csrf_protect
+@require_http_methods(["POST"])
+def admin_ban_and_delete_panel(request, post_id):
+    """Ban user and delete their post from admin control panel"""
+    if not request.session.get('is_admin', False):
+        messages.error(request, 'Forbidden: Admin access required')
+        return redirect('/')
+    
+    from posts.models import Post
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        target_user = post.author
+        post_content = post.content[:50] + "..." if len(post.content) > 50 else post.content
+        
+        # Ban the user
+        target_user.is_flagged = True
+        target_user.save()
+        
+        # Delete the post
+        post.delete()
+        
+        messages.success(request, f'User "{target_user.name}" has been banned and their post deleted: "{post_content}"')
+    except Exception as e:
+        messages.error(request, f'Error banning user and deleting post: {str(e)}')
+    
+    return redirect('admin_control_panel')

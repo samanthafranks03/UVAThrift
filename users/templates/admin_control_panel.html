@@ -1,0 +1,144 @@
+{% extends "a2_market/base.html" %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h1 class="mb-0">🛡️ Admin Control Panel</h1>
+        </div>
+        <div class="card-body">
+            <!-- Display messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                        👥 User Management
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="flagged-tab" data-bs-toggle="tab" data-bs-target="#flagged" type="button" role="tab">
+                        🚩 Flagged Posts {% if flagged_posts %}<span class="badge bg-danger">{{ flagged_posts|length }}</span>{% endif %}
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="adminTabsContent">
+                <!-- User Management Tab -->
+                <div class="tab-pane fade show active" id="users" role="tabpanel">
+                    <h3 class="mb-4">All Users</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for u in all_users %}
+                                <tr>
+                                    <td><strong>{{ u.name }}</strong></td>
+                                    <td>{{ u.email }}</td>
+                                    <td>
+                                        {% if u.is_flagged %}
+                                            <span class="badge bg-danger">Banned</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not u.is_flagged %}
+                                            <form method="post" action="{% url 'admin_ban_user_panel' %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to ban {{ u.name }}?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="email" value="{{ u.email }}" />
+                                                <button type="submit" class="btn btn-danger btn-sm">🚫 Ban User</button>
+                                            </form>
+                                        {% else %}
+                                            <form method="post" action="{% url 'admin_unban_user_panel' %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to unban {{ u.name }}?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="email" value="{{ u.email }}" />
+                                                <button type="submit" class="btn btn-success btn-sm">✅ Unban User</button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Flagged Posts Tab -->
+                <div class="tab-pane fade" id="flagged" role="tabpanel">
+                    <h3 class="mb-4">Flagged Posts</h3>
+                    {% if flagged_posts %}
+                        {% for post in flagged_posts %}
+                            <div class="card mb-4 {% if post.flag_count_db >= 5 %}border-danger{% elif post.flag_count_db >= 3 %}border-warning{% else %}border-info{% endif %}" style="border-width: 3px;">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ post.author.name }}</strong> ({{ post.author.email }})<br>
+                                        <small class="text-muted">Posted: {{ post.created_at|date:"M d, Y g:i A" }}</small>
+                                    </div>
+                                    <span class="badge bg-danger fs-6">{{ post.flag_count_db }} flag{{ post.flag_count_db|pluralize }}</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-light mb-3">
+                                        <p class="mb-2">{{ post.content }}</p>
+                                        {% if post.image %}
+                                            <img src="{% url 'post-image' post.id %}" alt="Post Image" class="img-fluid mt-2" style="max-width: 400px; border-radius: 8px;">
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold">Flagged by:</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% for flag in post.flags %}
+                                                <span class="badge bg-secondary">{{ flag.user.name }} ({{ flag.created_at|date:"M d" }})</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <form method="post" action="{% url 'admin_delete_post_panel' post.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">🗑️ Delete Post</button>
+                                        </form>
+                                        
+                                        <form method="post" action="{% url 'admin_ban_user_panel' %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to BAN {{ post.author.name }}?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="email" value="{{ post.author.email }}" />
+                                            <button type="submit" class="btn btn-warning">🚫 Ban User</button>
+                                        </form>
+                                        
+                                        <form method="post" action="{% url 'admin_ban_and_delete_panel' post.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to BAN {{ post.author.name }} AND DELETE this post?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-dark">⛔ Delete & Ban</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-success" role="alert">
+                            <h4 class="alert-heading">🎉 No Flagged Posts!</h4>
+                            <p>Great news! There are currently no posts that have been flagged by users.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

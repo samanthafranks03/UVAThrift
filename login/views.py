@@ -56,12 +56,24 @@ def add_update_user(user_data: dict[str, Any]):
     from users.models import User
     from django.contrib.auth.models import User as DjangoUser
 
+    # List of admin email addresses
+    ADMIN_EMAILS = [
+        'heba.ahmed.ha1215@gmail.com',
+        'shofu360@gmail.com',
+        'samantha.franks70@gmail.com',
+        'nadellasrikar@gmail.com',
+        'daniel815jimenez@gmail.com'
+    ]
+    
+    is_admin = user_data['email'] in ADMIN_EMAILS
+
     # Does user exist in database yet?
     if User.objects.filter(email=user_data['email']).exists():
         # User exists
         print('User already exists')
         user = User.objects.get(email=user_data['email'])
         user.is_new_user = False
+        user.is_admin = is_admin  # Update admin status
         user.save()
     else:
         # Create new user
@@ -70,7 +82,8 @@ def add_update_user(user_data: dict[str, Any]):
             nickname=user_data.get('given_name'),
             email=user_data.get('email'),
             picture=user_data.get('picture'),
-            is_new_user = True
+            is_new_user = True,
+            is_admin = is_admin
         )
         user.save()
 

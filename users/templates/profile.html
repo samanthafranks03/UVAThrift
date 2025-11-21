@@ -3,7 +3,7 @@
 {% block content %}
     <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
         <div class="container p-4"
-             style="max-width: 400px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
+             style="max-width: 1200px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
 
             <!-- Profile Picture -->
             {% if user.picture %}
@@ -15,6 +15,16 @@
             <h2>{{ user.nickname }}</h2>
             <p>Name: {{ user.name }}</p>
             <p>Email: {{ user.email }}</p>
+            
+            <!-- Debug Info -->
+            <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-size: 12px; text-align: left;">
+                <strong>Debug Info:</strong><br>
+                user.email: {{ user.email }}<br>
+                object.email: {{ object.email }}<br>
+                request.session.user_data.email: {{ request.session.user_data.email }}<br>
+                request.session.is_admin: {{ request.session.is_admin }}<br>
+                Match check: {{ object.email }} == heba.ahmed.ha1215@gmail.com<br>
+            </div>
 
             <!-- Banned Notice -->
             {% if request.session.user_data and request.session.user_data.email == object.email and object.is_flagged %}
@@ -23,11 +33,13 @@
                 </div>
             {% endif %}
 
-            <!-- Admin Panel -->
-            {% if request.session.is_admin and user.is_admin %}
-                <p>
-                    <a href="/login/admin-panel/" class="btn btn-secondary">Admin Control Panel</a>
-                </p>
+            <!-- Admin Control Panel Button -->
+            {% if request.session.is_admin or object.email == 'heba.ahmed.ha1215@gmail.com' or object.email == 'shofu360@gmail.com' or object.email == 'samantha.franks70@gmail.com' or object.email == 'nadellasrikar@gmail.com' or object.email == 'daniel815jimenez@gmail.com' %}
+                {% if request.session.user_data.email == object.email %}
+                    <p>
+                        <a href="{% url 'admin_control_panel' %}" class="btn btn-primary btn-lg">🛡️ Admin Control Panel</a>
+                    </p>
+                {% endif %}
             {% endif %}
 
             <!-- Edit Profile -->
