@@ -42,7 +42,8 @@ def auth_receiver(request):
         'shofu360@gmail.com',
         'samantha.franks70@gmail.com',
         'nadellasrikar@gmail.com',
-        'daniel815jimenez@gmail.com'
+        'daniel815jimenez@gmail.com',
+        'dummymcdumdum7@gmail.com'
     ]
 
     request.session['user_data'] = user_data
@@ -62,7 +63,8 @@ def add_update_user(user_data: dict[str, Any]):
         'shofu360@gmail.com',
         'samantha.franks70@gmail.com',
         'nadellasrikar@gmail.com',
-        'daniel815jimenez@gmail.com'
+        'daniel815jimenez@gmail.com',
+        'dummymcdumdum7@gmail.com'
     ]
     
     is_admin = user_data['email'] in ADMIN_EMAILS

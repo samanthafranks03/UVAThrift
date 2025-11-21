@@ -24,7 +24,7 @@
             {% endif %}
 
             <!-- Admin Control Panel Button -->
-            {% if request.session.is_admin or object.email == 'heba.ahmed.ha1215@gmail.com' or object.email == 'shofu360@gmail.com' or object.email == 'samantha.franks70@gmail.com' or object.email == 'nadellasrikar@gmail.com' or object.email == 'daniel815jimenez@gmail.com' %}
+            {% if request.session.is_admin or object.email == 'heba.ahmed.ha1215@gmail.com' or object.email == 'shofu360@gmail.com' or object.email == 'samantha.franks70@gmail.com' or object.email == 'nadellasrikar@gmail.com' or object.email == 'daniel815jimenez@gmail.com' or object.email == 'dummymcdumdum7@gmail.com' %}
                 {% if request.session.user_data.email == object.email %}
                     <p>
                         <a href="{% url 'admin_control_panel' %}" class="btn btn-primary btn-lg">🛡️ Admin Control Panel</a>
