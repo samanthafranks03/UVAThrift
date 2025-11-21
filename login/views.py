@@ -50,7 +50,7 @@ def auth_receiver(request):
     request.session['user_URL'] = user.get_absolute_url()
     request.session['is_admin'] = user_data['email'] in ADMIN_EMAILS
 
-    return redirect('sign_in')
+    return redirect('market-home')
 
 
 def add_update_user(user_data: dict[str, Any]):
