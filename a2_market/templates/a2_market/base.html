@@ -32,7 +32,7 @@
                 <a href="/market"
                    class="nav-item nav-link {% if request.resolver_match.url_name == 'home' or '/market' in request.path %}current-page{% endif %}">Browse</a>
                 <a href="/about" class="nav-item nav-link {% if '/about' in request.path %}current-page{% endif %}">About</a>
-                {% if request.user.is_authenticated %}
+                {% if request.session.user_data %}
                     <a href="{{ request.session.user_URL }}"
                        class="nav-item nav-link {% if '/users/' in request.path %}current-page{% endif %}">Profile</a>
                     <a href="{% url 'messaging:chat-list' %}"
@@ -47,7 +47,7 @@
             </div>
             <!-- Display first name of user and button to sign out on right side of dashboard-->
             <div class="navbar-nav ms-auto">
-                {% if request.user.is_authenticated %}
+                {% if request.session.user_data %}
                     <span class="navbar-text">
                       {{ request.session.user_data.given_name }}
                     </span>
