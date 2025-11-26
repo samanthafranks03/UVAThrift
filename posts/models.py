@@ -1,6 +1,6 @@
-import uuid
-
 from django.db import models
+
+from taggit.managers import TaggableManager
 
 class Post(models.Model):
     #The user who wrote the post
@@ -13,6 +13,9 @@ class Post(models.Model):
     image = models.ImageField(upload_to='post_images/', blank=True, null=True)
     #moderation flag
     is_flagged = models.BooleanField(default=False)
+
+    # Tags handled by taggit
+    tags = TaggableManager()
 
     class Meta:
         #show newest first
