@@ -2,83 +2,88 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8"/>
+  <head>
+    <meta charset="UTF-8" />
     <title>UVA Thrift</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'a2_market/style.css' %}">
-    <link rel="stylesheet" href="{% static 'a2_market/walkthrough.css' %}">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'a2_market/style.css' %}" />
     <style>
-        .navbar-nav .nav-link.current-page {
-            font-weight: bold !important;
-            color: #0d6efd !important;
-            border-bottom: 2px solid #0d6efd;
-        }
+      .navbar-nav .nav-link.current-page {
+        font-weight: bold !important;
+        color: #0d6efd !important;
+        border-bottom: 2px solid #0d6efd;
+      }
     </style>
     <!-- Allow for unique styling for each page of the application -->
-    {% block css %}
-    {% endblock %}
-</head>
-<body>
-<!-- Navigation bar will appear on each page of our application-->
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
+    {% block css %} {% endblock %}
+  </head>
+  <body>
+    <!-- Navigation bar will appear on each page of our application-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
         <a href="#" class="navbar-brand">UVA Thrift</a>
-        <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-            <span class="navbar-toggler-icon"></span>
+        <button
+          type="button"
+          class="navbar-toggler"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarCollapse"
+        >
+          <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
-            <!-- Display buttons that represent the core functionalities of our app on the left side of the dashboard-->
-            <div class="navbar-nav">
-                <a href="/market"
-                   class="nav-item nav-link {% if request.resolver_match.url_name == 'home' or '/market' in request.path %}current-page{% endif %}">Browse</a>
-                <a href="/about" class="nav-item nav-link {% if '/about' in request.path %}current-page{% endif %}">About</a>
-                {% if request.session.user_data %}
-                    <a href="{{ request.session.user_URL }}"
-                       class="nav-item nav-link {% if '/users/' in request.path %}current-page{% endif %}">Profile</a>
-                    <a href="{% url 'messaging:chat-list' %}"
-                       class="nav-item nav-link {% if '/messaging/' in request.path and '/notifications' not in request.path %}current-page{% endif %}">Messages</a>
-                    <a href="{% url 'messaging:notifications' %}"
-                       class="nav-item nav-link {% if '/messaging/notifications' in request.path %}current-page{% endif %}">Notifications
-                        {% if unread_count > 0 %}
-                            <span class="badge">{{ unread_count }}</span>
-                        {% endif %}
-                    </a>
-                {% endif %}
-            </div>
-            <!-- Display first name of user and button to sign out on right side of dashboard-->
-            <div class="navbar-nav ms-auto">
-                {% if request.session.user_data %}
-                    <span class="navbar-text">
-                      {{ request.session.user_data.given_name }}
-                    </span>
-                    <a href="/login/sign-out" class="nav-item nav-link">Sign Out</a>
-                {% else %}
-                    <a href="/login/" class="nav-item nav-link">Sign In</a>
-                {% endif %}
-            </div>
-
+          <!-- Display buttons that represent the core functionalities of our app on the left side of the dashboard-->
+          <div class="navbar-nav">
+            <a
+              href="/market"
+              class="nav-item nav-link {% if request.resolver_match.url_name == 'home' or '/market' in request.path %}current-page{% endif %}"
+              >Browse</a
+            >
+            <a
+              href="/about"
+              class="nav-item nav-link {% if '/about' in request.path %}current-page{% endif %}"
+              >About</a
+            >
+            {% if request.session.user_data %}
+            <a
+              href="{{ request.session.user_URL }}"
+              class="nav-item nav-link {% if '/users/' in request.path %}current-page{% endif %}"
+              >Profile</a
+            >
+            <a
+              href="{% url 'messaging:chat-list' %}"
+              class="nav-item nav-link {% if '/messaging/' in request.path and '/notifications' not in request.path %}current-page{% endif %}"
+              >Messages</a
+            >
+            <a
+              href="{% url 'messaging:notifications' %}"
+              class="nav-item nav-link {% if '/messaging/notifications' in request.path %}current-page{% endif %}"
+              >Notifications {% if unread_count > 0 %}
+              <span class="badge">{{ unread_count }}</span>
+              {% endif %}
+            </a>
+            {% endif %}
+          </div>
+          <!-- Display first name of user and button to sign out on right side of dashboard-->
+          <div class="navbar-nav ms-auto">
+            {% if request.session.user_data %}
+            <span class="navbar-text">
+              {{ request.session.user_data.given_name }}
+            </span>
+            <a href="/login/sign-out" class="nav-item nav-link">Sign Out</a>
+            {% else %}
+            <a href="/login/" class="nav-item nav-link">Sign In</a>
+            {% endif %}
+          </div>
         </div>
-    </div>
-</nav>
+      </div>
+    </nav>
 
-<!-- Allow for different content to be added on each page of the application -->
-<div class="container mt-4">
-    {% block content %}
+    <!-- Allow for different content to be added on each page of the application -->
+    {% block page_wrapper %}
+    <div class="container mt-4">{% block content %} {% endblock %}</div>
     {% endblock %}
-</div>
-
-<!-- Walkthrough Script -->
-<script src="{% static 'a2_market/walkthrough.js' %}"></script>
-{% if show_walkthrough %}
-<script>
-    // Auto-start walkthrough for new users
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            startWalkthrough();
-        }, 500); // Small delay to ensure page is fully rendered
-    });
-</script>
-{% endif %}
-</body>
+  </body>
 </html>
