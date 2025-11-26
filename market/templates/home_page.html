@@ -3,6 +3,77 @@
 
 {% block css %}
 <style>
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .post-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 260px;
+  }
+
+  .post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .post-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    color: #1f2937;
+  }
+
+  .post-author {
+    font-size: 14px;
+    color: #6b7280;
+    white-space: nowrap;
+  }
+
+  .post-image {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin: 4px 0 6px 0;
+  }
+
+  .post-body {
+    color: #374151;
+    margin: 0 0 4px 0;
+    line-height: 1.5;
+  }
+
+  .post-location {
+    font-size: 14px;
+    color: #4b5563;
+    margin: 0 0 2px 0;
+  }
+
+  .post-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .post-actions small {
+    color: #6b7280;
+  }
+
   .flag-btn {
     background: none;
     border: none;
@@ -100,6 +171,8 @@
   {% if can_post %}
     <form method="post" action="{% url 'create_post' %}" enctype="multipart/form-data" id="create-post-form">
       {% csrf_token %}
+      <input type="text" name="title" placeholder="Item name" maxlength="120" required class="form-control mb-2" />
+      <input type="text" name="location" placeholder="Pickup location" maxlength="120" required class="form-control mb-2" />
       <textarea name="content" rows="3" cols="50" placeholder="Write something..." required></textarea><br/>
       <label for="id_image">Attach image (required)</label>
       <input type="file" name="image" id="id_image" accept="image/*" />
@@ -184,12 +257,16 @@
   <h2>Recent Posts</h2>
   <div class="posts-grid">
   {% for post in posts %}
-    <div class="border p-2 mb-2">
-      <strong><a href="/users/{{ post.author.hashed_email }}">{{ post.author.nickname }}</a></strong>
+    <div class="post-card">
+      <div class="post-header">
+        <div class="post-title">{{ post.title|default_if_none:"Unnamed Item"|default:"Unnamed Item" }}</div>
+        <div class="post-author">by <a href="/users/{{ post.author.hashed_email }}">{{ post.author.nickname }}</a></div>
+      </div>
       {% if post.image %}
-      <img src="{% url 'post-image' post.id %}" alt="Post image" style="max-width: 100%; height: auto; margin-bottom: 10px;" />
+      <img src="{% url 'post-image' post.id %}" alt="Post image" class="post-image" />
       {% endif %}
-      <p>{{ post.content }}</p>
+      <p class="post-body">{{ post.content }}</p>
+      <p class="post-location"><strong>Pickup:</strong> {{ post.location|default_if_none:"Location not provided"|default:"Location not provided" }}</p>
       <div class="post-actions">
         <small>Posted on {{ post.created_at }}</small>
         {% if current_user and current_user != post.author %}

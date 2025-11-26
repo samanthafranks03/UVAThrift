@@ -62,6 +62,8 @@ def create_post(request):
         return redirect(f"/users/{user.hashed_email}/")
 
     # Get post text
+    title = request.POST.get("title", "").strip() or "Unnamed Item"
+    location = request.POST.get("location", "").strip() or "Location not provided"
     content = request.POST.get("content", "").strip()
 
     # Prefer image_key (S3 key) if client uploaded directly to S3; fall back to file upload
@@ -79,11 +81,17 @@ def create_post(request):
     # Create post. If we got an image_key, store it into the ImageField name so
     # storage.url() or a presigned GET redirect can serve it; otherwise save uploaded file.
     if image_key:
-        post = Post(author=user, content=content)
+        post = Post(author=user, title=title, content=content, location=location)
         post.image.name = image_key
         post.save()
     else:
-        Post.objects.create(author=user, content=content, image=image_file)
+        Post.objects.create(
+            author=user,
+            title=title,
+            content=content,
+            location=location,
+            image=image_file,
+        )
     messages.success(request, "Post created successfully!")
     return redirect("/market/")
 

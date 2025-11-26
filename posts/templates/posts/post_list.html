@@ -3,6 +3,73 @@
 
 {% block css %}
 <style>
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .post-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 260px;
+  }
+
+  .post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .post-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    color: #1f2937;
+  }
+
+  .post-author {
+    font-size: 14px;
+    color: #6b7280;
+    white-space: nowrap;
+  }
+
+  .post-image {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin: 4px 0 6px 0;
+  }
+
+  .post-body {
+    color: #374151;
+    margin: 0 0 4px 0;
+    line-height: 1.5;
+  }
+
+  .post-location {
+    font-size: 14px;
+    color: #4b5563;
+    margin: 0 0 2px 0;
+  }
+
+  .post-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    font-size: 13px;
+    color: #6b7280;
+  }
+
   .flag-btn {
     background: none;
     border: none;
@@ -85,6 +152,8 @@
 {% if request.session.user_data %}
 <form method="post" action="{% url 'create_post' %}" enctype="multipart/form-data" id="create-post-form">
   {% csrf_token %}
+  <input type="text" name="title" placeholder="Item name" maxlength="120" required class="form-control mb-2" />
+  <input type="text" name="location" placeholder="Pickup location" maxlength="120" required class="form-control mb-2" />
   <textarea
     name="content"
     rows="3"
@@ -170,47 +239,53 @@
 
 <hr />
 
-{% for post in posts %}
-<div class="post border p-2 mb-2">
-  <h3>{{ post.title }}</h3>
-  {% if post.image %}
-  <img src="{% url 'post-image' post.id %}" alt="Post image" style="max-width: 100%; height: auto; margin-bottom: 10px;" />
-  {% endif %}
-  <p>{{ post.content }}</p>
-  <div class="post-actions">
-    <small>Posted by {{ post.author.name }} on {{ post.created_at }}</small>
-    {% if current_user and current_user != post.author %}
-      <button class="flag-btn {% if post.is_flagged_by_current_user %}flagged{% endif %}"
-              data-post-id="{{ post.id }}"
-              onclick="toggleFlag({{ post.id }}, this)"
-              title="{% if post.is_flagged_by_current_user %}Remove flag{% else %}Flag post{% endif %}">
-        <span class="flag-icon"></span>
-      </button>
-      <span class="flag-count" id="flag-count-{{ post.id }}">
-        {% if post.flag_count > 0 %}{{ post.flag_count }}{% endif %}
-      </span>
-    {% elif current_user and current_user == post.author %}
-      <form method="post" action="{% url 'delete-post' hashed_email=post.author.hashed_email post_id=post.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?');">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-      </form>
+<div class="posts-grid">
+  {% for post in posts %}
+  <div class="post-card">
+    <div class="post-header">
+      <div class="post-title">{{ post.title|default_if_none:"Unnamed Item"|default:"Unnamed Item" }}</div>
+      <div class="post-author">by {{ post.author.name }}</div>
+    </div>
+    {% if post.image %}
+    <img src="{% url 'post-image' post.id %}" alt="Post image" class="post-image" />
     {% endif %}
+    <p class="post-body">{{ post.content }}</p>
+    <p class="post-location"><strong>Pickup:</strong> {{ post.location|default_if_none:"Location not provided"|default:"Location not provided" }}</p>
+    <div class="post-actions">
+      <small>Posted on {{ post.created_at }}</small>
+      {% if current_user and current_user != post.author %}
+        <button class="flag-btn {% if post.is_flagged_by_current_user %}flagged{% endif %}"
+                data-post-id="{{ post.id }}"
+                onclick="toggleFlag({{ post.id }}, this)"
+                title="{% if post.is_flagged_by_current_user %}Remove flag{% else %}Flag post{% endif %}">
+          <span class="flag-icon"></span>
+        </button>
+        <span class="flag-count" id="flag-count-{{ post.id }}">
+          {% if post.flag_count > 0 %}{{ post.flag_count }}{% endif %}
+        </span>
+      {% elif current_user and current_user == post.author %}
+        <form method="post" action="{% url 'delete-post' hashed_email=post.author.hashed_email post_id=post.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this post?');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+      {% endif %}
+    </div>
+    <form
+      method="POST"
+      action="{% url 'messaging:send-message' post.author.id %}"
+    >
+      {% csrf_token %}
+      <input
+        type="text"
+        name="content"
+        placeholder="Write your message..."
+        required
+      />
+      <button type="submit">Message {{ post.author.username }}</button>
+    </form>
   </div>
-  <form
-    method="POST"
-    action="{% url 'messaging:send-message' post.author.id %}"
-  >
-    {% csrf_token %}
-    <input
-      type="text"
-      name="content"
-      placeholder="Write your message..."
-      required
-    />
-    <button type="submit">Message {{ post.author.username }}</button>
-  </form>
+  {% endfor %}
 </div>
-{% endfor %}
 
 <script>
 function toggleFlag(postId, buttonElement) {
