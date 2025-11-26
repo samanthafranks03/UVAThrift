@@ -23,4 +23,6 @@ urlpatterns = [
     path("admin/delete-post/<int:post_id>/", views.admin_delete_post_panel, name="admin_delete_post_panel"),
     path("admin/dismiss-flags/<int:post_id>/", views.admin_dismiss_flags_panel, name="admin_dismiss_flags_panel"),
     path("admin/ban-and-delete/<int:post_id>/", views.admin_ban_and_delete_panel, name="admin_ban_and_delete_panel"),
+    # Walkthrough
+    path("complete-walkthrough/", views.complete_walkthrough, name="complete-walkthrough"),
 ]

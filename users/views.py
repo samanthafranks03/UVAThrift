@@ -461,3 +461,19 @@ def admin_ban_and_delete_panel(request, post_id):
         messages.error(request, f'Error banning user and deleting post: {str(e)}')
     
     return redirect('admin_control_panel')
+
+
+@require_http_methods(["POST"])
+def complete_walkthrough(request):
+    """Mark user as having completed the walkthrough"""
+    session_user = request.session.get('user_data', {})
+    if not session_user or session_user.get('email') is None:
+        return JsonResponse({'error': 'not-signed-in'}, status=403)
+    
+    try:
+        user = User.objects.get(email=session_user.get('email'))
+        user.has_seen_walkthrough = True
+        user.save()
+        return JsonResponse({'success': True})
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'user-not-found'}, status=404)

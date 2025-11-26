@@ -20,6 +20,8 @@ class User(models.Model):
     is_new_user = models.BooleanField(default=False)
     # check for admin
     is_admin = models.BooleanField(default=False)
+    # Walkthrough tracking
+    has_seen_walkthrough = models.BooleanField(default=False)
 
     def make_post(self):
         print("Making a post placeholder!\n")
