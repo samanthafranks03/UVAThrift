@@ -44,10 +44,16 @@ def home(request):
         for post in posts:
             post.is_flagged_by_current_user = post.is_flagged_by_user(user)
 
+    # Check if user should see walkthrough
+    show_walkthrough = False
+    if user and not user.has_seen_walkthrough:
+        show_walkthrough = True
+
     context = {
         "posts": posts,
         "user": user,
         "current_user": user,  # Add current_user to context for template
         "can_post": can_post,
+        "show_walkthrough": show_walkthrough,
     }
     return render(request, "home_page.html", context)
