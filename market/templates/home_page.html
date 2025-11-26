@@ -246,28 +246,27 @@
   </div>
 
   <script>
-    // Direct-to-S3 upload flow for posts (presign -> PUT -> notify server)
+    // Direct-to-S3 upload flow
     (function () {
       document.addEventListener("DOMContentLoaded", function () {
         var form = document.getElementById("create-post-form");
         if (!form) return;
+
         var fileInput = document.getElementById("id_image");
         var uploadBtn = document.getElementById("upload-image-btn");
         var submitBtn = document.getElementById("submit-post-btn");
         var hint = document.getElementById("image-hint");
 
-        function setHint(msg) {
-          if (hint) hint.textContent = msg;
-        }
-
         uploadBtn.addEventListener("click", async function () {
-          var f = fileInput && fileInput.files && fileInput.files[0];
+          var f = fileInput.files[0];
           if (!f) {
             alert("Please choose a file first.");
             return;
           }
+
           uploadBtn.disabled = true;
-          setHint("Requesting upload URL...");
+          hint.textContent = "Requesting upload URL...";
+
           try {
             var signEndpoint =
               "{% url 'posts-s3-presign' hashed_email=user.hashed_email %}";
@@ -275,74 +274,57 @@
               "?filename=" +
               encodeURIComponent(f.name) +
               "&content_type=" +
-              encodeURIComponent(f.type || "application/octet-stream");
-            var r = await fetch(signEndpoint + q, {
-              credentials: "same-origin",
-            });
-            if (!r.ok) throw new Error("presign failed: " + r.status);
+              encodeURIComponent(f.type);
+            var r = await fetch(signEndpoint + q);
             var j = await r.json();
             var putUrl = j.url;
-            var key = j.key;
-            setHint("Uploading to S3...");
+
+            hint.textContent = "Uploading to S3...";
             var putResp = await fetch(putUrl, {
               method: "PUT",
               headers: { "Content-Type": f.type },
               body: f,
             });
-            if (!putResp.ok)
-              throw new Error("upload failed: " + putResp.status);
-            setHint("Finalizing...");
+
             var saveEndpoint =
               "{% url 'posts-set-image' hashed_email=user.hashed_email %}";
-            var csrf =
-              document.querySelector("input[name=csrfmiddlewaretoken]") &&
-              document.querySelector("input[name=csrfmiddlewaretoken]").value;
+            var csrf = document.querySelector(
+              "[name=csrfmiddlewaretoken]"
+            ).value;
+
+            hint.textContent = "Finalizing...";
+
             var saveResp = await fetch(saveEndpoint, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrf,
               },
-              credentials: "same-origin",
-              body: JSON.stringify({ key: key }),
+              body: JSON.stringify({ key: j.key }),
             });
-            if (!saveResp.ok)
-              throw new Error("save failed: " + saveResp.status);
+
             var saved = await saveResp.json();
-            // Attach hidden input with image_key
-            var existing = form.querySelector("input[name=image_key]");
-            if (existing) existing.value = saved.key;
-            else {
-              var hidden = document.createElement("input");
-              hidden.type = "hidden";
-              hidden.name = "image_key";
-              hidden.value = saved.key;
-              form.appendChild(hidden);
-            }
-            setHint("Image uploaded. You can now post.");
+
+            var hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = "image_key";
+            hidden.value = saved.key;
+            form.appendChild(hidden);
+
+            hint.textContent = "Image uploaded. You can now post.";
             submitBtn.disabled = false;
           } catch (ex) {
-            console.error(ex);
-            alert("Upload failed: " + (ex.message || ex));
-            setHint("Upload failed.");
+            alert("Upload failed.");
             uploadBtn.disabled = false;
-          }
-        });
-
-        // keep submit disabled unless image_key present (safety)
-        form.addEventListener("submit", function (evt) {
-          var hidden = form.querySelector("input[name=image_key]");
-          if (!hidden || !hidden.value) {
-            evt.preventDefault();
-            alert("Please upload an image before posting.");
-            return false;
           }
         });
       });
     })();
   </script>
+
   {% elif user %}
   <div class="page-section text-danger">You are banned and cannot post.</div>
+
   {% else %}
   <div class="page-section d-flex justify-content-between align-items-center">
     <div>
@@ -357,6 +339,7 @@
 
   <div class="page-section">
     <div class="section-title">Recent Posts</div>
+
     <div class="posts-grid">
       {% for post in posts %}
       <div class="post-card">
@@ -366,23 +349,27 @@
               >{{ post.author.nickname }}</a
             ></strong
           >
+
           {% if post.image %}
           <img src="{% url 'post-image' post.id %}" alt="Post image" />
           {% endif %}
+
           <p class="mb-2">{{ post.content }}</p>
         </div>
+
         <div class="post-actions">
           <small class="post-meta">Posted on {{ post.created_at }}</small>
+
           {% if current_user and current_user != post.author %}
           <div class="d-flex align-items-center">
             <button
               class="flag-btn {% if post.is_flagged_by_current_user %}flagged{% endif %}"
               data-post-id="{{ post.id }}"
               onclick="toggleFlag({{ post.id }}, this)"
-              title="{% if post.is_flagged_by_current_user %}Remove flag{% else %}Flag post{% endif %}"
             >
               <span class="flag-icon"></span>
             </button>
+
             <span class="flag-count" id="flag-count-{{ post.id }}">
               {% if post.flag_count > 0 %}{{ post.flag_count }}{% endif %}
             </span>
@@ -391,9 +378,7 @@
         </div>
       </div>
       {% empty %}
-      <p class="text-muted mb-0">
-        No posts yet. Be the first to post something!
-      </p>
+      <p class="text-muted mb-0">No posts yet.</p>
       {% endfor %}
     </div>
   </div>
@@ -409,35 +394,16 @@
           .value,
       },
     })
-      .then((response) => response.json())
+      .then((r) => r.json())
       .then((data) => {
-        if (data.success) {
-          // Toggle button appearance
-          if (data.is_flagged) {
-            buttonElement.classList.add("flagged");
-            buttonElement.title = "Remove flag";
-          } else {
-            buttonElement.classList.remove("flagged");
-            buttonElement.title = "Flag post";
-          }
+        if (!data.success) return;
 
-          // Update flag count
-          const flagCountElement = document.getElementById(
-            `flag-count-${postId}`
-          );
-          if (data.flag_count > 0) {
-            flagCountElement.textContent = data.flag_count;
-          } else {
-            flagCountElement.textContent = "";
-          }
-        } else {
-          alert(data.error || "An error occurred");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert("An error occurred while flagging the post");
+        buttonElement.classList.toggle("flagged", data.is_flagged);
+
+        const flagCount = document.getElementById(`flag-count-${postId}`);
+        flagCount.textContent = data.flag_count > 0 ? data.flag_count : "";
       });
   }
 </script>
+
 {% endblock %}
