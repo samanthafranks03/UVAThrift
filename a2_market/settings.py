@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "taggit",
 ]
 
 # If AWS bucket is configured, enable django-storages S3 backend so
