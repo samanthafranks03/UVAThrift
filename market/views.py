@@ -37,7 +37,14 @@ def home(request):
         can_post = True
 
     #Grabs all the posts from our db
+    query = request.GET.get("query", "").strip()
     posts = Post.objects.select_related("author").all()
+
+    if query:
+        tags = [t.strip() for t in query.split(",") if t.strip()]
+        for tag in tags:
+            posts = posts.filter(tags__name__iexact=tag)
+        posts = posts.distinct()
     
     # Add flag information for each post if user is logged in
     if user:
@@ -55,5 +62,6 @@ def home(request):
         "current_user": user,  # Add current_user to context for template
         "can_post": can_post,
         "show_walkthrough": show_walkthrough,
+        "query": query,
     }
     return render(request, "home_page.html", context)
