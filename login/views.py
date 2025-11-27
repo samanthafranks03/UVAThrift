@@ -23,8 +23,9 @@ def auth_receiver(request):
     """
     Google calls this URL after the user has signed in with their Google account.
     """
-    print('Inside')
-    token = request.POST['credential']
+    token = request.POST.get('credential')
+    if not token:
+        return redirect('sign_in')
 
     try:
         user_data = id_token.verify_oauth2_token(
