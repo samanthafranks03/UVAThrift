@@ -83,7 +83,13 @@ def create_post(request):
         post.image.name = image_key
         post.save()
     else:
-        Post.objects.create(author=user, content=content, image=image_file)
+        post = Post.objects.create(author=user, content=content, image=image_file)
+
+    tags_str = request.POST.get("tags", "")
+    if tags_str:
+        tags = [t.strip() for t in tags_str.split(",") if t.strip()]
+        post.tags.set(tags)
+
     messages.success(request, "Post created successfully!")
     return redirect("/market/")
 
