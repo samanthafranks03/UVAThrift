@@ -399,6 +399,12 @@
 
   <div class="section-card">
     <div class="section-heading mb-3">Recent Posts</div>
+    <form method="get" action="" class="mb-3">
+        <label for="query">
+            <input type="text" name="query" value="{{ query }}" placeholder="Search by tag..." />
+        </label>
+        <button class="btn btn-primary" type="submit">Search</button>
+    </form>
     <div class="posts-grid">
     {% for post in posts %}
       <div class="post-card">
@@ -427,7 +433,7 @@
         </div>
       </div>
     {% empty %}
-      <p>No posts yet. Be the first to post something!</p>
+      <p>No posts yet {% if query %} for "{{ query }}"{% endif %}. Be the first to post something!</p>
     {% endfor %}
     </div>
   </div>
