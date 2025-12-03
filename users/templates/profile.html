@@ -40,6 +40,30 @@
                 </p>
             {% endif %}
 
+            <!-- Bio & Interests -->
+            <div class="mt-4" style="text-align: center; width: 100%;">
+                <h3 class="text-center mb-3">Bio</h3>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            {% if user.bio %}
+                                <p>{{ user.bio }}</p>
+                            {% else %}
+                                <p>No bio provided.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                <h3 class="text-center mb-3">Interests</h3>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            {% if user.interests %}
+                                <p>{{ user.interests }}</p>
+                            {% else %}
+                                <p>No interests provided.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+            </div>
+
             <!-- User Posts -->
             <div class="mt-4" style="text-align: left; width: 100%;">
                 <h3 class="text-center mb-3">Posts</h3>
