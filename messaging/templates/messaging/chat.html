@@ -151,10 +151,10 @@
   <!-- Messages -->
   <div class="chat-messages" id="chatBox">
     {% for msg in messages %}
-    <div class="message {% if msg.author_id == current_user.id %}sent{% else %}received{% endif %}">
-      {{ msg.content }}
-      <div class="timestamp">{{ msg.created_at|date:"M d, H:i" }}</div>
-    </div>
+      <div class="message {% if msg.author_id == request.user.id %}sent{% else %}received{% endif %}">
+        {{ msg.content }}
+        <div class="timestamp">{{ msg.created_at|date:"M d, H:i" }}</div>
+      </div>
     {% empty %}
     <p style="text-align: center; color: #888">
       No messages yet 
