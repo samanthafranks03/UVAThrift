@@ -151,6 +151,7 @@
   <!-- Messages -->
   <div class="chat-messages" id="chatBox">
     {% for msg in messages %}
+      <div class="message {% if msg.author.username == request.session.user_data.email %}sent{% else %}received{% endif %}">
       <div class="message {% if msg.author_id == request.user.id %}sent{% else %}received{% endif %}">
         {{ msg.content }}
         <div class="timestamp">{{ msg.created_at|date:"M d, H:i" }}</div>
