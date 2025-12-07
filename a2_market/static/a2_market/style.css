@@ -103,11 +103,6 @@ body {
     display: block;
   }
 
-  /* Prevent horizontal overflow caused by large images or margins */
-  html, body {
-    overflow-x: hidden;
-  }
-
   .post-card .post-content {
     flex: 1 1 auto;
     margin-top: 10px;

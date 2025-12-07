@@ -16,15 +16,13 @@ class User(models.Model):
     interests = models.TextField(blank=True)
     picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True, default='default.jpg')
     # Moderation
+    is_private = models.BooleanField(default=False)
     is_flagged = models.BooleanField(default=False)
     is_new_user = models.BooleanField(default=False)
     # check for admin
     is_admin = models.BooleanField(default=False)
     # Walkthrough tracking
     has_seen_walkthrough = models.BooleanField(default=False)
-
-    def make_post(self):
-        print("Making a post placeholder!\n")
 
     def get_absolute_url(self):
         return reverse("user-profile", kwargs={"hashed_email": self.hashed_email})
@@ -50,6 +48,7 @@ class UserForm(forms.ModelForm):
             "bio",
             "interests",
             "picture",
+            'is_private',
         ]
         # Optional: add widgets for nicer rendering
         widgets = {

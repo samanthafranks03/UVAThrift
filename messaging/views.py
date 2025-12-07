@@ -5,6 +5,7 @@ from django.contrib.auth.models import User as DjangoUser
 from . import models
 from django.db.models import Q
 from .models import Messaging, Notification, Group, GroupMessage
+from users.models import User as ProfileUser
 
 
 def chat_list(request: HttpRequest) -> HttpResponse:
@@ -148,9 +149,20 @@ def start_chat(request: HttpRequest) -> HttpResponse:
         return redirect('/login/')
 
     email = request.session['user_data']['email']
-    user = DjangoUser.objects.get(username=email)
+    user = DjangoUser.objects.get_or_create(username=email, defaults={'email': email})[0]
 
     search_query = request.GET.get("search", "").strip()
+    
+    # Sync ProfileUsers to DjangoUsers - this ensures all users from the posts app
+    # are available in the messaging system
+    profile_users = ProfileUser.objects.all()
+    for profile_user in profile_users:
+        DjangoUser.objects.get_or_create(
+            username=profile_user.email,
+            defaults={'email': profile_user.email}
+        )
+    
+    # Now get all DjangoUsers except the current user
     users = DjangoUser.objects.exclude(id=user.id)
     if search_query:
         users = users.filter(username__icontains=search_query)
