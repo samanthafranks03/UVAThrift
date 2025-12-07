@@ -4,50 +4,50 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: white;
     color: #333;
-  }
-  
-  /* Navbar styling */
-  .navbar {
+}
+
+/* Navbar styling */
+.navbar {
     box-shadow: 0 2px 4px #003d0e;
-  }
-  
-  .navbar-brand {
+}
+
+.navbar-brand {
     font-weight: bold;
     color: #071249;
-  }
-  
-  .navbar-nav .nav-link {
+}
+
+.navbar-nav .nav-link {
     margin-right: 15px;
     color: #071249;
     transition: color 0.3s ease;
-  }
-  
-  .navbar-nav .nav-link:hover {
+}
+
+.navbar-nav .nav-link:hover {
     color: #071249;
-  }
-  
-  /* Badge styling */
-  .badge {
+}
+
+/* Badge styling */
+.badge {
     background-color: #ff6f61;
     color: white;
     font-size: 0.75rem;
     margin-left: 5px;
-  }
-  
-  /* User name styling */
-  .navbar-text {
+}
+
+/* User name styling */
+.navbar-text {
     margin-right: 15px;
     font-weight: 500;
     color: rgb(140, 140, 140);
-  }
-  
-  /* Container spacing */
-  .container {
-    padding-top: 20px;
-  }
+}
 
-  /* Posts grid and card styles */
-  .posts-grid {
+/* Container spacing */
+.container {
+    padding-top: 20px;
+}
+
+/* Posts grid and card styles */
+.posts-grid {
     display: grid;
     grid-template-columns: repeat(1, 1fr);
     gap: 18px;
@@ -56,33 +56,41 @@ body {
     box-sizing: border-box;
     max-width: 1200px;
     margin: 0 auto;
-  }
+}
 
-  /* Responsive breakpoints: 2 cols, 3 cols, 4 cols */
-  @media (min-width: 600px) {
-    .posts-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (min-width: 900px) {
-    .posts-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-  @media (min-width: 1200px) {
-    .posts-grid { grid-template-columns: repeat(4, 1fr); }
-  }
+/* Responsive breakpoints: 2 cols, 3 cols, 4 cols */
+@media (min-width: 600px) {
+    .posts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 
-  .post-card {
+@media (min-width: 900px) {
+    .posts-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    .posts-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.post-card {
     background: #fff;
     border: 1px solid #e1e1e1;
     border-radius: 6px;
     padding: 10px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     display: flex;
     flex-direction: column;
     height: 300px; /* slightly smaller card height */
     overflow: hidden;
     box-sizing: border-box;
-  }
+}
 
-  .post-card .post-image {
+.post-card .post-image {
     flex: 0 0 160px; /* image area height */
     width: 100%;
     overflow: hidden;
@@ -91,9 +99,9 @@ body {
     align-items: center;
     justify-content: center;
     background: #f7f7f7;
-  }
+}
 
-  .post-card .post-image img {
+.post-card .post-image img {
     /* scale the full image to fit within the image box without cropping */
     max-width: 100%;
     max-height: 100%;
@@ -101,27 +109,27 @@ body {
     height: auto;
     object-fit: contain; /* show entire image, letterbox if needed */
     display: block;
-  }
+}
 
-  .post-card .post-content {
+.post-card .post-content {
     flex: 1 1 auto;
     margin-top: 10px;
     overflow: auto;
-  }
+}
 
-  .post-card h3 {
+.post-card h3 {
     margin: 0 0 6px 0;
     font-size: 1.05rem;
-  }
+}
 
-  /* removed price-badge and post-caption styles (reverted to simple grid cards) */
+/* removed price-badge and post-caption styles (reverted to simple grid cards) */
 
-  .post-card p {
+.post-card p {
     margin: 0 0 10px 0;
     line-height: 1.35;
-  }
+}
 
-  .post-card small {
+.post-card small {
     color: #666;
-  }
+}
   
