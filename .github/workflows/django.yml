@@ -33,5 +33,8 @@ jobs:
           ls -la
           find . -maxdepth 3 -type f -name "manage.py"
 
+      - name: Collect static files
+        run: python manage.py collectstatic --noinput
+
       - name: Run tests (Django)
         run: python manage.py test
