@@ -46,7 +46,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    min-height: 260px;
+    min-height: 400px;
   }
 
   .post-header {
@@ -170,6 +170,15 @@
 
   .flag-btn.flagged:hover .flag-icon::after {
     background-color: #c82333;
+  }
+
+  .message-button {
+    color: white;
+    margin: 0 0 2px 0;
+    font-size: 14px;
+    background-color: darkgreen;
+    align-self: flex-start; 
+    margin-left: 0;
   }
 
   .post-actions {
@@ -417,6 +426,7 @@
         {% endif %}
         <p class="post-body">{{ post.content }}</p>
         <p class="post-location"><strong>Pickup:</strong> {{ post.location|default_if_none:"Location not provided"|default:"Location not provided" }}</p>
+        <a class="btn btn-secondary message-button" href="{% url 'messaging:chat' post.author.email %}">Message Seller</a>
         <div class="post-actions">
           <small>Posted on {{ post.created_at }}</small>
           {% if current_user and current_user != post.author %}
