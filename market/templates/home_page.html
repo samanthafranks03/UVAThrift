@@ -1,6 +1,6 @@
 <!-- REFERENCES
 Claude 4.5
-Use: Adding image display for posts with presigned S3 URLs -->
+Use: Adding image display for posts with presigned S3 URLs and differentiating welcome messages for new vs returning users -->
 {% extends "a2_market/base.html" %}
 
 {% block css %}
@@ -254,8 +254,13 @@ Use: Adding image display for posts with presigned S3 URLs -->
 <div class="page-container">
   {% if request.session.user_data %}
   <div class="section-card">
+    {% if is_new_user %}
+    <div class="fw-semibold">Welcome, {{ request.session.user_data.given_name }}!</div>
+    <div class="text-muted">Thanks for joining our community.</div>
+    {% else %}
     <div class="fw-semibold">Welcome back, {{ request.session.user_data.given_name }}.</div>
     <div class="text-muted">Share something with the community.</div>
+    {% endif %}
   </div>
   {% else %}
   <div class="section-card d-flex justify-content-between align-items-center">

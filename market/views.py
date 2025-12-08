@@ -1,3 +1,7 @@
+# REFERENCES
+# Claude 4.5
+# Use: Adding is_new_user flag to context to differentiate welcome messages for new vs returning users
+
 from django.shortcuts import render, redirect
 from users.models import User
 from posts.models import Post
@@ -63,5 +67,6 @@ def home(request):
         "can_post": can_post,
         "show_walkthrough": show_walkthrough,
         "query": query,
+        "is_new_user": user.is_new_user if user else False,
     }
     return render(request, "home_page.html", context)
