@@ -20,6 +20,36 @@ from django.http import HttpResponseRedirect
 from django.contrib import messages
 
 
+@require_http_methods(["POST"])
+def delete_account(request, hashed_email):
+    """Delete the user's account and all associated data."""
+    session_user = request.session.get('user_data', {})
+    if not session_user or session_user.get('email') is None:
+        messages.error(request, "Please sign in to delete your account.")
+        return redirect('/login/')
+    
+    try:
+        user = User.objects.get(hashed_email=hashed_email)
+    except User.DoesNotExist:
+        messages.error(request, "User not found.")
+        return redirect('/market/')
+    
+    # Verify the session user is the owner of this account
+    if session_user.get('email') != user.email:
+        messages.error(request, "You can only delete your own account.")
+        return redirect('/market/')
+    
+    # Delete the user (this will cascade delete their posts due to ForeignKey on_delete=CASCADE)
+    user_email = user.email
+    user.delete()
+    
+    # Clear the session to log them out
+    request.session.flush()
+    
+    messages.success(request, f"Account for {user_email} has been permanently deleted.")
+    return redirect('/login/')
+
+
 class UserProfileView(DetailView):
     model = User
     template_name = "profile.html"

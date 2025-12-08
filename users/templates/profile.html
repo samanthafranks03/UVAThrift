@@ -98,6 +98,18 @@
                     {% endif %}
                 </div>
 
+                <!-- Delete Account Section -->
+                {% if request.session.user_data.email == user.email %}
+                <div class="mt-5 pt-4" style="border-top: 2px solid #dc3545;">
+                    <div class="text-center mb-3">
+                        <form method="post" action="{% url 'delete-account' hashed_email=user.hashed_email %}" onsubmit="return confirm('Are you sure you want to permanently delete your account? This action cannot be undone.');">                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-lg">Delete My Account</button>
+                        </form>
+                    </div>
+                    <p class="text-center text-muted mb-3">Once you delete your account, all data will be lost. Are you sure you want to stop using the most amazing webapp in the universe?</p>
+                </div>
+                {% endif %}
+
             </div>
         </div>
     {% else %}

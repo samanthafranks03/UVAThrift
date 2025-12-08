@@ -14,6 +14,7 @@ urlpatterns = [
     path("<slug:hashed_email>/set-picture", views.set_profile_picture, name="set-profile-picture"),
     path("<slug:hashed_email>/picture", views.s3_serve_picture, name="user-picture"),
     path("<slug:hashed_email>/delete-post/<int:post_id>", views.delete_post, name="delete-post"),
+    path("<slug:hashed_email>/delete-account", views.delete_account, name="delete-account"),
     # Admin actions from profile
     path("<slug:hashed_email>/admin/ban-user", views.admin_ban_user_profile, name="admin-ban-user-profile"),
     path("<slug:hashed_email>/admin/unban-user", views.admin_unban_user_profile, name="admin-unban-user-profile"),
