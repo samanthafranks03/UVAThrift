@@ -1,3 +1,7 @@
+# REFERENCES
+# Claude 4.5
+# Use: Implementing S3 presigned URL generation for profile picture uploads
+
 from django.shortcuts import render
 
 from django.views.generic import DetailView, UpdateView

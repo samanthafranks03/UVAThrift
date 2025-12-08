@@ -1,3 +1,7 @@
+# REFERENCES
+# Claude 4.5
+# Use: Adding S3 presign and image serving URL endpoints for posts
+
 from django.urls import path
 from . import views
 

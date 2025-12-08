@@ -1,3 +1,7 @@
+# REFERENCES
+# Claude 4.5
+# Use: Adding root URL redirect to fix 404 error and removing duplicate messaging URL include
+
 """
 URL configuration for a2_market project.
 

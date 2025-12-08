@@ -1,3 +1,7 @@
+# REFERENCES
+# Claude 4.5
+# Use: Configuring AWS S3 storage settings for media file uploads
+
 """
 Django settings for a2_market project.
 
