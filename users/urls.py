@@ -1,6 +1,6 @@
 # REFERENCES
 # Claude 4.5
-# Use: Adding S3 presign and picture serving URL endpoints
+# Use: Adding S3 presign and picture serving URL endpoints, and delete account route
 
 from django.urls import path
 

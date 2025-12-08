@@ -1,6 +1,6 @@
 # REFERENCES
 # Claude 4.5
-# Use: Implementing S3 presigned URL generation for profile picture uploads
+# Use: Implementing S3 presigned URL generation for profile picture uploads and account deletion functionality
 
 from django.shortcuts import render
 
