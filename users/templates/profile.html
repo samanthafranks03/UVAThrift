@@ -81,16 +81,32 @@ Use: Adding delete account button and functionality to user profile page -->
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div class="flex-grow-1">
                                             <p class="mb-2">{{ post.content }}</p>
+                                            <p class="mb-1">
+                                                <span class="badge {% if post.status == 'closed' %}bg-danger-subtle text-danger{% else %}bg-success-subtle text-success{% endif %}">
+                                                    {% if post.status == 'closed' %}Closed listing{% else %}Active{% endif %}
+                                                </span>
+                                            </p>
                                             {% if post.image %}
                                                 <img src="{% url 'post-image' post.id %}" alt="Post Image" class="img-fluid mb-2" style="max-width: 100%; border-radius: 5px;">
                                             {% endif %}
                                             <small class="text-muted">{{ post.created_at|date:"M d, Y g:i A" }}</small>
                                         </div>
                                         {% if request.session.user_data and request.session.user_data.email == object.email %}
-                                            <form method="post" action="{% url 'delete-post' hashed_email=user.hashed_email post_id=post.id %}" class="ms-2" onsubmit="return confirm('Are you sure you want to delete this post?');">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                            </form>
+                                            <div class="d-flex flex-column align-items-end gap-2 ms-2">
+                                                <form method="post" action="{% url 'toggle_post_status' post.id %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                                    {% if post.status == 'active' %}
+                                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Close listing</button>
+                                                    {% else %}
+                                                        <button type="submit" class="btn btn-outline-success btn-sm">Reopen listing</button>
+                                                    {% endif %}
+                                                </form>
+                                                <form method="post" action="{% url 'delete-post' hashed_email=user.hashed_email post_id=post.id %}" onsubmit="return confirm('Are you sure you want to delete this post?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                                </form>
+                                            </div>
                                         {% endif %}
                                     </div>
                                 </div>

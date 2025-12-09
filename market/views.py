@@ -42,7 +42,7 @@ def home(request):
 
     #Grabs all the posts from our db
     query = request.GET.get("query", "").strip()
-    posts = Post.objects.select_related("author").all()
+    posts = Post.objects.select_related("author").filter(status="active")
 
     if query:
         tags = [t.strip() for t in query.split(",") if t.strip()]

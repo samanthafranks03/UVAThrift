@@ -3,6 +3,10 @@ from django.db import models
 from taggit.managers import TaggableManager
 
 class Post(models.Model):
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("closed", "Closed"),
+    ]
     #The user who wrote the post
     author = models.ForeignKey('users.User', on_delete=models.CASCADE)
     #Name of the item being listed
@@ -13,6 +17,7 @@ class Post(models.Model):
     location = models.CharField(max_length=120, default="Location not provided", blank=True)
     #Timestamp automatically set when post is created
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default="active")
     # Optional image for post; will be required at the form level
     image = models.ImageField(upload_to='post_images/', blank=True, null=True)
     #moderation flag
@@ -35,6 +40,10 @@ class Post(models.Model):
     def is_flagged_by_user(self, user):
         #Check if a specific user has flagged this post
         return self.postflag_set.filter(user=user).exists()
+
+    @property
+    def is_active(self):
+        return self.status == "active"
 
 
 class PostFlag(models.Model):

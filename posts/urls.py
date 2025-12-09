@@ -12,6 +12,7 @@ urlpatterns = [
     path('<slug:hashed_email>/set-image', views.set_post_image, name='posts-set-image'),
     path('<int:post_id>/image/', views.post_image, name='post-image'),
     path('flag/<int:post_id>/', views.toggle_flag, name='toggle_flag'),
+    path('status/<int:post_id>/', views.toggle_post_status, name='toggle_post_status'),
     # Admin URLs
     path('admin/flagged/', views.admin_flagged_posts, name='admin_flagged_posts'),
     path('admin/flagged-api/', views.admin_flagged_posts_api, name='admin_flagged_posts_api'),

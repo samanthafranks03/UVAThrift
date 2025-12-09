@@ -5,23 +5,20 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Count
 from users.models import User
 from .models import Post, PostFlag
 from django.conf import settings
-from django.http import JsonResponse
 import boto3
 import uuid
 import logging
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse
 
 @require_http_methods(["GET"])
 def feed(request):
     """Show all posts (home feed)."""
-    posts = Post.objects.select_related("author").all()
+    posts = Post.objects.select_related("author").filter(status="active")
 
     # Add flag information for each post if user is logged in
     user_data = request.session.get("user_data", {})
@@ -253,6 +250,28 @@ def toggle_flag(request, post_id):
         "flag_count": post.flag_count(),
         "message": message
     })
+
+
+@require_http_methods(["POST"])
+def toggle_post_status(request, post_id):
+    """Allow the author to close/reopen their post."""
+    user_data = request.session.get("user_data", {})
+    email = user_data.get("email")
+    if not email:
+        messages.error(request, "Please sign in to update listings.")
+        return redirect("/login/")
+
+    post = get_object_or_404(Post, id=post_id)
+    if post.author.email != email:
+        return HttpResponse("Forbidden", status=403)
+
+    post.status = "closed" if post.status == "active" else "active"
+    post.save(update_fields=["status"])
+
+    next_url = request.POST.get("next") or post.author.get_absolute_url()
+    status_label = "closed" if post.status == "closed" else "reopened"
+    messages.success(request, f"Listing {status_label}.")
+    return redirect(next_url)
 
 
 ########## Admin Views ##########
