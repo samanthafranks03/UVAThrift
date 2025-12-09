@@ -68,7 +68,7 @@
               href="{% url 'messaging:notifications' %}"
               class="nav-item nav-link {% if '/messaging/notifications' in request.path %}current-page{% endif %}"
               >Notifications {% if unread_count > 0 %}
-              <span class="badge">{{ unread_count }}</span>
+              <span class="badge badge-success">{{ unread_count }}</span>
               {% endif %}
             </a>
             {% endif %}
