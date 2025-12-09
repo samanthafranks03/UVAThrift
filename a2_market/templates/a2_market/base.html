@@ -77,7 +77,7 @@
           <div class="navbar-nav ms-auto">
             {% if request.session.user_data %}
             <span class="navbar-text">
-              {{ request.session.user_data.given_name }}
+              {{ display_name }}
             </span>
             <a href="/login/sign-out" class="nav-item nav-link">Sign Out</a>
             {% else %}

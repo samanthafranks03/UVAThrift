@@ -272,12 +272,12 @@ Use: Adding image display for posts with presigned S3 URLs and differentiating w
   <div class="section-card">
     {% if is_new_user %}
     <div class="fw-semibold">
-      Welcome, {{ request.session.user_data.given_name }}!
+      Welcome, {{ display_name }}!
     </div>
     <div class="text-muted">Thanks for joining our community.</div>
     {% else %}
     <div class="fw-semibold">
-      Welcome back, {{ request.session.user_data.given_name }}.
+      Welcome back, {{ display_name }}.
     </div>
     <div class="text-muted">Share something with the community.</div>
     {% endif %}
