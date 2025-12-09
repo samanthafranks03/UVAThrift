@@ -110,6 +110,10 @@ def notifications(request):
     user = DjangoUser.objects.get(username=email)
 
     unread = models.Notification.objects.filter(recipient=user, is_read=False).order_by("-created_at")
+
+    for note in unread:
+        note.message.author.display_name = get_display_name(note.message.author)
+        
     return render(request, "messaging/notifications.html", {"notifications": unread})
 
 @require_http_methods(["POST"])
@@ -138,6 +142,9 @@ def group_chat_view(request: HttpRequest, group_id: int) -> HttpResponse:
         return redirect("messaging:chat-list")
 
     messages = models.GroupMessage.objects.filter(group=group).order_by("timestamp")
+
+    for msg in messages:
+        msg.author.display_name = get_display_name(msg.author)
 
     return render(request, "messaging/group_chat.html", {
         "group": group,
@@ -197,7 +204,11 @@ def start_chat(request: HttpRequest) -> HttpResponse:
                 return redirect("messaging:chat", username=selected_user.username)
             else:
                 selected_users = DjangoUser.objects.filter(id__in=selected_ids)
-                group_name = "Group with " + ", ".join([user.username] + [u.username for u in selected_users])
+                # Use display names instead of emails
+                member_names = [get_display_name(user)]
+                for selected_user in selected_users:
+                    member_names.append(get_display_name(selected_user))
+                group_name = "Group with " + ", ".join(member_names)
                 group = models.Group.objects.create(name=group_name)
                 group.members.add(user, *selected_users)
                 return redirect("messaging:group-chat", group_id=group.id)
