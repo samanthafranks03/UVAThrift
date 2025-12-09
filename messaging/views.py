@@ -25,6 +25,10 @@ def chat_list(request: HttpRequest) -> HttpResponse:
         Q(author=user) | Q(recipient=user)
     ).values_list("author", "recipient")
 
+    # Add display name for each user
+    for u in users:
+        u.display_name = get_display_name(u)
+
     user_ids = set()
     for author_id, recipient_id in messaged_user_ids:
         if author_id != user.id:
@@ -64,6 +68,8 @@ def chat_view(request: HttpRequest, username: str) -> HttpResponse:
     messages = models.Messaging.objects.filter(
         Q(author=user, recipient=other_user) | Q(author=other_user, recipient=user)
     ).order_by("created_at")
+
+    other_user.display_name = get_display_name(other_user)
 
     return render(request, "messaging/chat.html", {"messages": messages, "other_user": other_user})
 
@@ -152,6 +158,10 @@ def start_chat(request: HttpRequest) -> HttpResponse:
     user = DjangoUser.objects.get_or_create(username=email, defaults={'email': email})[0]
 
     search_query = request.GET.get("search", "").strip()
+
+    # Add display_name to each user
+    for u in users:
+        u.display_name = get_display_name(u)
     
     # Sync ProfileUsers to DjangoUsers - makes sure all users from the posts app are available in the messaging system
     profile_users = ProfileUser.objects.all()
@@ -183,3 +193,11 @@ def start_chat(request: HttpRequest) -> HttpResponse:
         "users": users,
         "search_query": search_query
     })
+
+def get_display_name(django_user):
+    # Get the name for a Django user, fallback to email
+    try:
+        profile_user = ProfileUser.objects.get(email=django_user.username)
+        return profile_user.name if profile_user.name else django_user.username
+    except ProfileUser.DoesNotExist:
+        return django_user.username
