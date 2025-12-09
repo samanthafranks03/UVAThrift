@@ -111,8 +111,13 @@ def notifications(request):
 
     unread = models.Notification.objects.filter(recipient=user, is_read=False).order_by("-created_at")
 
+    # Add display_name for both regular and group messages
     for note in unread:
-        note.message.author.display_name = get_display_name(note.message.author)
+        if note.message:  
+            note.message.author.display_name = get_display_name(note.message.author)
+        elif note.group_message:  
+            note.group_message.author.display_name = get_display_name(note.group_message.author)
+        
         
     return render(request, "messaging/notifications.html", {"notifications": unread})
 
@@ -165,17 +170,15 @@ def send_group_message(request: HttpRequest, group_id: int) -> HttpResponse:
 
     content = request.POST.get("content", "").strip()
     if content:
-        models.GroupMessage.objects.create(group=group, author=user, content=content)
+        group_msg = models.GroupMessage.objects.create(group=group, author=user, content=content)
 
-        # Create notifications for all group members except the sender
+        # Create notifications 
         for member in group.members.all():
             if member != user: 
-                message = Messaging.objects.create(
-                    author=user,
-                    recipient=member,
-                    content=f"[Group: {group.name}] {content}"
+                Notification.objects.create(
+                    recipient=member, 
+                    group_message=group_msg  
                 )
-                Notification.objects.create(recipient=member, message=message)
 
     return redirect("messaging:group-chat", group_id=group.id)
 

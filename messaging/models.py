@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.models import User as DjangoUser
 
 
 class Messaging(models.Model):
@@ -15,15 +16,6 @@ class Messaging(models.Model):
     def __str__(self):
         return f"{self.author.username} → {self.recipient.username}: {self.content[:40]}"
 
-class Notification(models.Model):
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
-    message = models.ForeignKey(Messaging, on_delete=models.CASCADE)
-    is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Notification for {self.recipient.username} - {self.message.content[:30]}"
-
 class Group(models.Model):
     name = models.CharField(max_length=100)
     members = models.ManyToManyField(User, related_name="messaging_groups")
@@ -34,3 +26,13 @@ class GroupMessage(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(DjangoUser, on_delete=models.CASCADE)
+    message = models.ForeignKey(Messaging, on_delete=models.CASCADE, null=True, blank=True)  
+    group_message = models.ForeignKey(GroupMessage, on_delete=models.CASCADE, null=True, blank=True)  
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification for {self.recipient.username} - {self.message.content[:30]}"

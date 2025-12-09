@@ -9,20 +9,28 @@
     {% if notifications %}
       <ul class="list-group">
         {% for note in notifications %}
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <strong>{{ note.message.author.display_name }}</strong>
-              <span style="font-size: 12px; color: #999;">({{ note.message.author.username }})</span>: 
-              {{ note.message.content|truncatechars:80 }}
-              <br>
-              <small class="text-muted">{{ note.created_at|date:"M d, H:i" }}</small>
-            </div>
-            <form method="post" action="{% url 'messaging:mark-read' note.id %}">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
-            </form>
-          </li>
-        {% endfor %}
+  <li class="list-group-item d-flex justify-content-between align-items-center">
+    <div>
+      {% if note.message %}
+            <!-- Regular message notification -->
+            <strong>{{ note.message.author.display_name }}</strong>
+            <span style="font-size: 12px; color: #999;">({{ note.message.author.username }})</span>: 
+            {{ note.message.content|truncatechars:80 }}
+          {% elif note.group_message %}
+            <!-- Group message notification -->
+            <strong>{{ note.group_message.author.display_name }}</strong> in <strong>{{ note.group_message.group.name }}</strong>
+            <span style="font-size: 12px; color: #999;">({{ note.group_message.author.username }})</span>: 
+            {{ note.group_message.content|truncatechars:80 }}
+          {% endif %}
+      <br>
+      <small class="text-muted">{{ note.created_at|date:"M d, H:i" }}</small>
+    </div>
+    <form method="post" action="{% url 'messaging:mark-read' note.id %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
+    </form>
+  </li>
+{% endfor %}
       </ul>
     {% else %}
       <div class="text-center text-muted">No unread messages.</div>
