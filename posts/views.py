@@ -272,8 +272,48 @@ def toggle_post_status(request, post_id):
     if post.author.email != email:
         return HttpResponse("Forbidden", status=403)
 
+    previous_status = post.status
     post.status = "closed" if post.status == "active" else "active"
     post.save(update_fields=["status"])
+
+    # Notify bookmarked users when a listing is closed
+    if previous_status == "active" and post.status == "closed":
+        actor = post.author
+        actor_dj, _ = DjangoUser.objects.get_or_create(
+            username=actor.email,
+            defaults={"email": actor.email},
+        )
+        bookmarked = Bookmark.objects.filter(post=post).select_related("user")
+        for bm in bookmarked:
+            recipient_profile = bm.user
+            if recipient_profile.email == actor.email:
+                continue
+            recipient_dj, _ = DjangoUser.objects.get_or_create(
+                username=recipient_profile.email,
+                defaults={"email": recipient_profile.email},
+            )
+            note_text = f"{actor.nickname or actor.name or 'Someone'} closed the post \"{post.title or 'your post'}\" you bookmarked."
+            msg = Messaging.objects.create(author=actor_dj, recipient=recipient_dj, content=note_text)
+            Notification.objects.create(recipient=recipient_dj, message=msg)
+    # Notify author/bookmarkers when reopened
+    elif previous_status == "closed" and post.status == "active":
+        actor = post.author
+        actor_dj, _ = DjangoUser.objects.get_or_create(
+            username=actor.email,
+            defaults={"email": actor.email},
+        )
+        bookmarked = Bookmark.objects.filter(post=post).select_related("user")
+        for bm in bookmarked:
+            recipient_profile = bm.user
+            if recipient_profile.email == actor.email:
+                continue
+            recipient_dj, _ = DjangoUser.objects.get_or_create(
+                username=recipient_profile.email,
+                defaults={"email": recipient_profile.email},
+            )
+            note_text = f"{actor.nickname or actor.name or 'Someone'} reopened the post \"{post.title or 'your post'}\"."
+            msg = Messaging.objects.create(author=actor_dj, recipient=recipient_dj, content=note_text)
+            Notification.objects.create(recipient=recipient_dj, message=msg)
 
     next_url = request.POST.get("next") or post.author.get_absolute_url()
     status_label = "closed" if post.status == "closed" else "reopened"
@@ -340,7 +380,7 @@ def bookmarks_list(request):
         return redirect("/login/")
 
     bookmarks = (
-        Bookmark.objects.filter(user=user)
+        Bookmark.objects.filter(user=user, post__status="active")
         .select_related("post__author")
         .order_by("-created_at")
     )
