@@ -104,7 +104,15 @@ def add_update_user(user_data: dict[str, Any]):
 
 
 def sign_out(request):
-    del request.session['user_data']
+    # Safely clear session data without raising if keys are missing
+    request.session.pop('user_data', None)
+    request.session.pop('user_URL', None)
+    request.session.pop('is_admin', None)
+    # Optionally flush to rotate the session
+    try:
+        request.session.flush()
+    except Exception:
+        pass
     return redirect('sign_in')
 
 ########## Admin Views ##########
