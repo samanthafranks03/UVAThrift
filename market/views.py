@@ -59,17 +59,11 @@ def home(request):
             post.is_flagged_by_current_user = post.is_flagged_by_user(user)
             post.is_bookmarked_by_current_user = post.id in bookmarked_ids
 
-    # Check if user should see walkthrough
-    show_walkthrough = False
-    if user and not user.has_seen_walkthrough:
-        show_walkthrough = True
-
     context = {
         "posts": posts,
         "user": user,
         "current_user": user,  # Add current_user to context for template
         "can_post": can_post,
-        "show_walkthrough": show_walkthrough,
         "query": query,
         "is_new_user": user.is_new_user if user else False,
     }

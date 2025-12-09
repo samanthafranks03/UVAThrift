@@ -513,7 +513,7 @@ def complete_walkthrough(request):
         return JsonResponse({'error': 'user-not-found'}, status=404)
 
 def reset_walkthrough(request):
-    """Reset the walkthrough flag so it shows again on next visit to home page"""
+    """Reset the walkthrough flag and redirect to home page with walkthrough trigger"""
     session_user = request.session.get('user_data', {})
     if not session_user or session_user.get('email') is None:
         return redirect('market')
@@ -525,4 +525,5 @@ def reset_walkthrough(request):
     except User.DoesNotExist:
         pass
     
-    return redirect('market')
+    # Redirect with URL parameter to trigger walkthrough
+    return redirect('/market?start_walkthrough=true')
