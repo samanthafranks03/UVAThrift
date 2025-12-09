@@ -162,14 +162,14 @@
   </div>
 
   <!-- Messages -->
-  <div class="chat-messages" id="chatBox">
     {% for msg in messages %}
     <div class="message {% if msg.author.username == request.session.user_data.email %}sent{% else %}received{% endif %}">
       <div class="message-author">
-        {% if msg.author == request.user %}
+        {% if msg.author.username == request.session.user_data.email %}
           You
         {% else %}
-          {{ msg.author.username }}
+          {{ msg.author.display_name }}
+          <span style="font-size: 10px; opacity: 0.7;">({{ msg.author.username }})</span>
         {% endif %}
       </div>
       {{ msg.content }}
