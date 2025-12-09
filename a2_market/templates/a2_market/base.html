@@ -10,6 +10,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="{% static 'a2_market/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'a2_market/walkthrough.css' %}" />
     <style>
       .navbar-nav .nav-link.current-page {
         font-weight: bold !important;
@@ -92,5 +93,18 @@
     {% block page_wrapper %}
     <div class="container mt-4">{% block content %} {% endblock %}</div>
     {% endblock %}
+    
+    <!-- Walkthrough JavaScript -->
+    <script src="{% static 'a2_market/walkthrough.js' %}"></script>
+    <script>
+      // Auto-start walkthrough for new users
+      {% if show_walkthrough %}
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          startWalkthrough();
+        }, 500);
+      });
+      {% endif %}
+    </script>
   </body>
 </html>

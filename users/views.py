@@ -512,7 +512,6 @@ def complete_walkthrough(request):
     except User.DoesNotExist:
         return JsonResponse({'error': 'user-not-found'}, status=404)
 
-@login_required
 def reset_walkthrough(request):
     """Reset the walkthrough flag so it shows again on next visit to home page"""
     session_user = request.session.get('user_data', {})
