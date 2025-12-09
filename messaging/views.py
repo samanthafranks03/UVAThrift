@@ -7,6 +7,13 @@ from django.db.models import Q
 from .models import Messaging, Notification, Group, GroupMessage
 from users.models import User as ProfileUser
 
+def get_display_name(django_user):
+    # Get the name for a Django user, fallback to email
+    try:
+        profile_user = ProfileUser.objects.get(email=django_user.username)
+        return profile_user.name if profile_user.name else django_user.username
+    except ProfileUser.DoesNotExist:
+        return django_user.username
 
 def chat_list(request: HttpRequest) -> HttpResponse:
     if not request.session.get('user_data'):
@@ -25,10 +32,6 @@ def chat_list(request: HttpRequest) -> HttpResponse:
         Q(author=user) | Q(recipient=user)
     ).values_list("author", "recipient")
 
-    # Add display name for each user
-    for u in users:
-        u.display_name = get_display_name(u)
-
     user_ids = set()
     for author_id, recipient_id in messaged_user_ids:
         if author_id != user.id:
@@ -39,6 +42,10 @@ def chat_list(request: HttpRequest) -> HttpResponse:
     users = DjangoUser.objects.filter(id__in=user_ids)
     if search_query:
         users = users.filter(username__icontains=search_query)
+
+    # Add display name for each user
+    for u in users:
+        u.display_name = get_display_name(u)
 
     # Group chats
     groups = models.Group.objects.filter(members=user)
@@ -159,9 +166,6 @@ def start_chat(request: HttpRequest) -> HttpResponse:
 
     search_query = request.GET.get("search", "").strip()
 
-    # Add display_name to each user
-    for u in users:
-        u.display_name = get_display_name(u)
     
     # Sync ProfileUsers to DjangoUsers - makes sure all users from the posts app are available in the messaging system
     profile_users = ProfileUser.objects.all()
@@ -175,6 +179,10 @@ def start_chat(request: HttpRequest) -> HttpResponse:
     users = DjangoUser.objects.exclude(id=user.id)
     if search_query:
         users = users.filter(username__icontains=search_query)
+
+    # Add display_name to each user
+    for u in users:
+        u.display_name = get_display_name(u)
 
     if request.method == "POST":
         selected_ids = request.POST.getlist("members")
@@ -193,11 +201,3 @@ def start_chat(request: HttpRequest) -> HttpResponse:
         "users": users,
         "search_query": search_query
     })
-
-def get_display_name(django_user):
-    # Get the name for a Django user, fallback to email
-    try:
-        profile_user = ProfileUser.objects.get(email=django_user.username)
-        return profile_user.name if profile_user.name else django_user.username
-    except ProfileUser.DoesNotExist:
-        return django_user.username

@@ -130,10 +130,10 @@
       {% for user in users %}
         <a class="chat-card" href="{% url 'messaging:chat' user.username %}">
           <div class="chat-info">
-            <div class="profile-circle">{{ user.username|slice:":1" }}</div>
+            <div class="profile-circle">{{ user.display_name|slice:":1" }}</div>
             <div>
-              <div class="chat-username">{{ user.username }}</div>
-              <div class="chat-preview">Click to open conversation</div>
+              <div class="chat-username">{{ user.display_name }}</div>
+              <div class="chat-preview" style="font-size: 11px; color: #999;">{{ user.username }}</div>
             </div>
           </div>
           <span style="color: #ccc">›</span>
