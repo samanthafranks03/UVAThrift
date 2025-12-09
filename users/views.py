@@ -516,7 +516,7 @@ def reset_walkthrough(request):
     """Reset the walkthrough flag and redirect to home page with walkthrough trigger"""
     session_user = request.session.get('user_data', {})
     if not session_user or session_user.get('email') is None:
-        return redirect('market')
+        return redirect('/market')
     
     try:
         user = User.objects.get(email=session_user.get('email'))
