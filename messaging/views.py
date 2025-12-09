@@ -8,10 +8,15 @@ from .models import Messaging, Notification, Group, GroupMessage
 from users.models import User as ProfileUser
 
 def get_display_name(django_user):
-    # Get the name for a Django user, fallback to email
+    # Get the nickname if set, otherwise name from Google Account
     try:
         profile_user = ProfileUser.objects.get(email=django_user.username)
-        return profile_user.name if profile_user.name else django_user.username
+        if profile_user.nickname:
+            return profile_user.nickname
+        elif profile_user.name:
+            return profile_user.name
+        else:
+            return django_user.username
     except ProfileUser.DoesNotExist:
         return django_user.username
 
