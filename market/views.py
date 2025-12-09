@@ -4,7 +4,7 @@
 
 from django.shortcuts import render, redirect
 from users.models import User
-from posts.models import Post
+from posts.models import Post, Bookmark
 
 
 def home(request):
@@ -52,8 +52,12 @@ def home(request):
     
     # Add flag information for each post if user is logged in
     if user:
+        bookmarked_ids = set(
+            Bookmark.objects.filter(user=user, post__in=posts).values_list("post_id", flat=True)
+        )
         for post in posts:
             post.is_flagged_by_current_user = post.is_flagged_by_user(user)
+            post.is_bookmarked_by_current_user = post.id in bookmarked_ids
 
     # Check if user should see walkthrough
     show_walkthrough = False

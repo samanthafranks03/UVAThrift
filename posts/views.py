@@ -5,18 +5,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Count
-from users.models import User
-from .models import Post, PostFlag
 from django.conf import settings
-from django.http import JsonResponse
 import boto3
 import uuid
 import logging
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse
+
+from users.models import User
+from .models import Post, PostFlag, Bookmark
+from messaging.models import Messaging, Notification
+from django.contrib.auth.models import User as DjangoUser
 
 @require_http_methods(["GET"])
 def feed(request):
@@ -31,8 +31,12 @@ def feed(request):
     if email:
         try:
             current_user = User.objects.get(email=email)
+            bookmarked_ids = set(
+                Bookmark.objects.filter(user=current_user, post__in=posts).values_list("post_id", flat=True)
+            )
             for post in posts:
                 post.is_flagged_by_current_user = post.is_flagged_by_user(current_user)
+                post.is_bookmarked_by_current_user = post.id in bookmarked_ids
         except User.DoesNotExist:
             pass
 
@@ -253,6 +257,85 @@ def toggle_flag(request, post_id):
         "flag_count": post.flag_count(),
         "message": message
     })
+
+
+@require_http_methods(["POST"])
+def toggle_bookmark(request, post_id):
+    """Toggle bookmark status for a post"""
+    user_data = request.session.get("user_data", {})
+    email = user_data.get("email")
+
+    if not email:
+        return JsonResponse({"error": "Please sign in to bookmark posts."}, status=401)
+
+    try:
+        user = User.objects.get(email=email)
+        post = get_object_or_404(Post, id=post_id)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found."}, status=404)
+
+    existing = Bookmark.objects.filter(user=user, post=post).first()
+    if existing:
+        existing.delete()
+        is_bookmarked = False
+        message = "Bookmark removed."
+    else:
+        Bookmark.objects.create(user=user, post=post)
+        is_bookmarked = True
+        message = "Post bookmarked."
+
+        # Notify the post author (via messaging notification) when someone bookmarks their post
+        if post.author.email != user.email:
+            recipient_dj, _ = DjangoUser.objects.get_or_create(
+                username=post.author.email,
+                defaults={"email": post.author.email},
+            )
+            sender_dj, _ = DjangoUser.objects.get_or_create(
+                username=user.email,
+                defaults={"email": user.email},
+            )
+            note_text = f"{user.nickname or user.name or 'Someone'} bookmarked your post \"{post.title or 'your post'}\"."
+            msg = Messaging.objects.create(author=sender_dj, recipient=recipient_dj, content=note_text)
+            Notification.objects.create(recipient=recipient_dj, message=msg)
+
+    return JsonResponse({
+        "success": True,
+        "is_bookmarked": is_bookmarked,
+        "message": message,
+    })
+
+
+@require_http_methods(["GET"])
+def bookmarks_list(request):
+    """Show all bookmarks for the signed-in user."""
+    user_data = request.session.get("user_data", {})
+    email = user_data.get("email")
+
+    if not email:
+        return redirect("/login/")
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return redirect("/login/")
+
+    bookmarks = (
+        Bookmark.objects.filter(user=user)
+        .select_related("post__author")
+        .order_by("-created_at")
+    )
+
+    posts = [b.post for b in bookmarks]
+    for post in posts:
+        post.is_bookmarked_by_current_user = True
+        post.is_flagged_by_current_user = post.is_flagged_by_user(user)
+
+    context = {
+        "bookmarks": bookmarks,
+        "posts": posts,
+        "current_user": user,
+    }
+    return render(request, "posts/bookmarks.html", context)
 
 
 ########## Admin Views ##########

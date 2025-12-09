@@ -1,9 +1,7 @@
 <!-- REFERENCES
 Claude 4.5
 Use: Adding image display for posts with presigned S3 URLs and differentiating welcome messages for new vs returning users -->
-{% extends "a2_market/base.html" %}
-
-{% block css %}
+{% extends "a2_market/base.html" %} {% block css %}
 <style>
   body {
     background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
@@ -49,7 +47,7 @@ Use: Adding image display for posts with presigned S3 URLs and differentiating w
     flex-direction: column;
     gap: 10px;
     min-height: 400px;
-      overflow: auto;
+    overflow: auto;
   }
 
   .post-header {
@@ -131,7 +129,7 @@ Use: Adding image display for posts with presigned S3 URLs and differentiating w
   }
 
   .flag-icon::before {
-    content: '';
+    content: "";
     position: absolute;
     left: 2px;
     top: 0;
@@ -142,7 +140,7 @@ Use: Adding image display for posts with presigned S3 URLs and differentiating w
   }
 
   .flag-icon::after {
-    content: '';
+    content: "";
     position: absolute;
     left: 4px;
     top: 2px;
@@ -180,7 +178,7 @@ Use: Adding image display for posts with presigned S3 URLs and differentiating w
     margin: 0 0 2px 0;
     font-size: 14px;
     background-color: darkgreen;
-    align-self: flex-start; 
+    align-self: flex-start;
     margin-left: 0;
   }
 
@@ -197,68 +195,90 @@ Use: Adding image display for posts with presigned S3 URLs and differentiating w
     margin-left: 5px;
   }
 
+  .bookmark-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    color: #6b7280;
+    padding: 4px;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .bookmark-btn.bookmarked {
+    color: #f59e0b;
+  }
+
+  .bookmark-btn:hover {
+    color: #0f172a;
+    transform: translateY(-1px);
+  }
+
   #tag-container .tag {
-  display: inline-block;
-  background: #e0e0e0;
-  padding: 5px 10px;
-  margin: 5px;
-  border-radius: 3px;
-  font-size: 0.9em;
+    display: inline-block;
+    background: #e0e0e0;
+    padding: 5px 10px;
+    margin: 5px;
+    border-radius: 3px;
+    font-size: 0.9em;
   }
 
   #tag-container .remove-tag {
-  cursor: pointer;
-  margin-left: 8px;
-  color: red;
-  font-weight: bold;
+    cursor: pointer;
+    margin-left: 8px;
+    color: red;
+    font-weight: bold;
   }
 
   #tag-input.duplicate {
-  border: 2px solid red;
-  background-color: #ffe5e5;
-}
+    border: 2px solid red;
+    background-color: #ffe5e5;
+  }
 
-.scrollable {
+  .scrollable {
     max-height: 300px;
     overflow-y: auto;
-}
+  }
 
-/* Stuff for Chromium browsers */
-.scrollable::-webkit-scrollbar {
+  /* Stuff for Chromium browsers */
+  .scrollable::-webkit-scrollbar {
     width: 6px;
-}
+  }
 
-.scrollable::-webkit-scrollbar-track {
+  .scrollable::-webkit-scrollbar-track {
     background: transparent;
-}
+  }
 
-.scrollable::-webkit-scrollbar-thumb {
+  .scrollable::-webkit-scrollbar-thumb {
     background: rgba(50, 130, 15, 0.3);
     border-radius: 3px;
-}
+  }
 
-.scrollable::-webkit-scrollbar-thumb:hover {
+  .scrollable::-webkit-scrollbar-thumb:hover {
     background: rgba(50, 130, 15, 0.5);
-}
+  }
 
-/* Firefoxia oh yeah */
-.scrollable {
+  /* Firefoxia oh yeah */
+  .scrollable {
     scrollbar-width: thin;
     scrollbar-color: rgba(50, 130, 15, 0.3) transparent;
-}
+  }
 </style>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 
 <div class="page-container">
   {% if request.session.user_data %}
   <div class="section-card">
     {% if is_new_user %}
-    <div class="fw-semibold">Welcome, {{ request.session.user_data.given_name }}!</div>
+    <div class="fw-semibold">
+      Welcome, {{ request.session.user_data.given_name }}!
+    </div>
     <div class="text-muted">Thanks for joining our community.</div>
     {% else %}
-    <div class="fw-semibold">Welcome back, {{ request.session.user_data.given_name }}.</div>
+    <div class="fw-semibold">
+      Welcome back, {{ request.session.user_data.given_name }}.
+    </div>
     <div class="text-muted">Share something with the community.</div>
     {% endif %}
   </div>
@@ -270,33 +290,66 @@ Use: Adding image display for posts with presigned S3 URLs and differentiating w
     </div>
     <a class="btn btn-primary" href="/login">Sign in</a>
   </div>
-  {% endif %}
-
-  {% if can_post %}
+  {% endif %} {% if can_post %}
   <div class="section-card">
     <div class="section-heading">Create a post</div>
-    <form method="post" action="{% url 'create_post' %}" enctype="multipart/form-data" id="create-post-form">
+    <form
+      method="post"
+      action="{% url 'create_post' %}"
+      enctype="multipart/form-data"
+      id="create-post-form"
+    >
       {% csrf_token %}
-        <div class="row g-2 mb-2">
-          <div class="col-md-6">
-            <input type="text" name="title" placeholder="Item name" maxlength="120" required class="form-control" />
-          </div>
-          <div class="col-md-6">
-            <input type="text" name="location" placeholder="Pickup location" maxlength="120" required class="form-control" />
-          </div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-6">
+          <input
+            type="text"
+            name="title"
+            placeholder="Item name"
+            maxlength="120"
+            required
+            class="form-control"
+          />
         </div>
-        <div class="mb-2">
-          <textarea name="content" rows="3" class="form-control" placeholder="Write something..." required></textarea>
+        <div class="col-md-6">
+          <input
+            type="text"
+            name="location"
+            placeholder="Pickup location"
+            maxlength="120"
+            required
+            class="form-control"
+          />
         </div>
-        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-          <label for="id_image" class="form-label mb-0">Attach image (required)</label>
-          <input type="file" name="image" id="id_image" accept="image/*" class="form-control form-control-sm" style="max-width: 260px" />
-          <small id="image-hint" class="text-muted">You must attach an image before posting.</small>
-        </div>
-        <div class="composer-actions mb-2">
+      </div>
+      <div class="mb-2">
+        <textarea
+          name="content"
+          rows="3"
+          class="form-control"
+          placeholder="Write something..."
+          required
+        ></textarea>
+      </div>
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <label for="id_image" class="form-label mb-0"
+          >Attach image (required)</label
+        >
+        <input
+          type="file"
+          name="image"
+          id="id_image"
+          accept="image/*"
+          class="form-control form-control-sm"
+          style="max-width: 260px"
+        />
+        <small id="image-hint" class="text-muted"
+          >You must attach an image before posting.</small
+        >
+      </div>
+      <div class="composer-actions mb-2">
         <div class="d-flex align-items-center gap-2">
-          <label for="tag-input" class="form-label mb-0"
-            >Add tags</label>
+          <label for="tag-input" class="form-label mb-0">Add tags</label>
           <input
             type="text"
             name="tag-input"
@@ -309,247 +362,369 @@ Use: Adding image display for posts with presigned S3 URLs and differentiating w
         <small id="tag-hint">Tags help others find your post!</small>
       </div>
       <div class="composer-actions mb-2">
-          <div id="tag-container" class="mb-2"></div>
+        <div id="tag-container" class="mb-2"></div>
       </div>
-        <div class="d-flex gap-2">
-          <button type="button" id="upload-image-btn" class="btn btn-outline-secondary">Upload picture</button>
-          <button type="submit" id="submit-post-btn" class="btn btn-primary" disabled>Post</button>
-        </div>
-      </form>
-    </div>
+      <div class="d-flex gap-2">
+        <button
+          type="button"
+          id="upload-image-btn"
+          class="btn btn-outline-secondary"
+        >
+          Upload picture
+        </button>
+        <button
+          type="submit"
+          id="submit-post-btn"
+          class="btn btn-primary"
+          disabled
+        >
+          Post
+        </button>
+      </div>
+    </form>
+  </div>
 
-    <script>
-      // The following script was generated by Microsoft Copilot
-      const input = document.getElementById('tag-input');
-      const container = document.getElementById('tag-container');
-      const hiddenInput = document.getElementById('hidden-tags');
+  <script>
+    const input = document.getElementById("tag-input");
+    const container = document.getElementById("tag-container");
+    const hiddenInput = document.getElementById("hidden-tags");
 
-      function updateHiddenInput() {
-        const tags = [...container.querySelectorAll('.tag')]
-          .map(tag => tag.firstChild.textContent);
-        hiddenInput.value = tags.join(',');
+    function updateHiddenInput() {
+      const tags = [...container.querySelectorAll(".tag")].map(
+        (tag) => tag.firstChild.textContent
+      );
+      hiddenInput.value = tags.join(",");
+    }
+
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && input.value.trim() !== "") {
+        e.preventDefault();
+        const tagText = input.value.trim();
+
+        const existingTags = [...container.querySelectorAll(".tag")].map(
+          (tag) => tag.firstChild.textContent.toLowerCase()
+        );
+
+        if (existingTags.includes(tagText.toLowerCase())) {
+          input.value = "";
+          input.classList.add("duplicate");
+          setTimeout(() => input.classList.remove("duplicate"), 500);
+          return;
+        }
+
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = tagText;
+
+        const removeBtn = document.createElement("span");
+        removeBtn.textContent = "×";
+        removeBtn.className = "remove-tag";
+        removeBtn.onclick = () => {
+          container.removeChild(tag);
+          updateHiddenInput();
+        };
+
+        tag.appendChild(removeBtn);
+        container.appendChild(tag);
+
+        // Clear input and update hidden field
+        input.value = "";
+        updateHiddenInput();
       }
+    });
+  </script>
 
-      input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && input.value.trim() !== '') {
-          e.preventDefault();
-          const tagText = input.value.trim();
+  <script>
+    // Direct-to-S3 upload flow for posts (presign -> PUT -> notify server)
+    (function () {
+      document.addEventListener("DOMContentLoaded", function () {
+        var form = document.getElementById("create-post-form");
+        if (!form) return;
+        var fileInput = document.getElementById("id_image");
+        var uploadBtn = document.getElementById("upload-image-btn");
+        var submitBtn = document.getElementById("submit-post-btn");
+        var hint = document.getElementById("image-hint");
 
-          // ✅ Check for duplicates
-          const existingTags = [...container.querySelectorAll('.tag')]
-            .map(tag => tag.firstChild.textContent.toLowerCase());
+        function setHint(msg) {
+          if (hint) hint.textContent = msg;
+        }
 
-          if (existingTags.includes(tagText.toLowerCase())) {
-            // Optionally give feedback (e.g., flash input red)
-            input.value = '';
-            input.classList.add('duplicate');
-            setTimeout(() => input.classList.remove('duplicate'), 500);
+        uploadBtn.addEventListener("click", async function () {
+          var f = fileInput && fileInput.files && fileInput.files[0];
+          if (!f) {
+            alert("Please choose a file first.");
             return;
           }
-
-          // Create tag element
-          const tag = document.createElement('span');
-          tag.className = 'tag';
-          tag.textContent = tagText;
-
-          // Add delete button
-          const removeBtn = document.createElement('span');
-          removeBtn.textContent = '×';
-          removeBtn.className = 'remove-tag';
-          removeBtn.onclick = () => {
-            container.removeChild(tag);
-            updateHiddenInput();
-          };
-
-          tag.appendChild(removeBtn);
-          container.appendChild(tag);
-
-          // Clear input and update hidden field
-          input.value = '';
-          updateHiddenInput();
-        }
-      });
-    </script>
-
-    <script>
-    // Direct-to-S3 upload flow for posts (presign -> PUT -> notify server)
-    (function(){
-      document.addEventListener('DOMContentLoaded', function(){
-        var form = document.getElementById('create-post-form');
-        if (!form) return;
-        var fileInput = document.getElementById('id_image');
-        var uploadBtn = document.getElementById('upload-image-btn');
-        var submitBtn = document.getElementById('submit-post-btn');
-        var hint = document.getElementById('image-hint');
-
-        function setHint(msg){ if(hint) hint.textContent = msg; }
-
-        uploadBtn.addEventListener('click', async function(){
-          var f = fileInput && fileInput.files && fileInput.files[0];
-          if (!f) { alert('Please choose a file first.'); return; }
-          uploadBtn.disabled = true; setHint('Requesting upload URL...');
+          uploadBtn.disabled = true;
+          setHint("Requesting upload URL...");
           try {
-            var signEndpoint = "{% url 'posts-s3-presign' hashed_email=user.hashed_email %}";
-            var q = '?filename=' + encodeURIComponent(f.name) + '&content_type=' + encodeURIComponent(f.type || 'application/octet-stream');
-            var r = await fetch(signEndpoint + q, { credentials: 'same-origin' });
-            if (!r.ok) throw new Error('presign failed: ' + r.status);
-            var j = await r.json();
-            var putUrl = j.url; var key = j.key;
-            setHint('Uploading to S3...');
-            var putResp = await fetch(putUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: f });
-            if (!putResp.ok) throw new Error('upload failed: ' + putResp.status);
-            setHint('Finalizing...');
-            var saveEndpoint = "{% url 'posts-set-image' hashed_email=user.hashed_email %}";
-            var csrf = document.querySelector('input[name=csrfmiddlewaretoken]') && document.querySelector('input[name=csrfmiddlewaretoken]').value;
-            var saveResp = await fetch(saveEndpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
-              credentials: 'same-origin',
-              body: JSON.stringify({ key: key })
+            var signEndpoint =
+              "{% url 'posts-s3-presign' hashed_email=user.hashed_email %}";
+            var q =
+              "?filename=" +
+              encodeURIComponent(f.name) +
+              "&content_type=" +
+              encodeURIComponent(f.type || "application/octet-stream");
+            var r = await fetch(signEndpoint + q, {
+              credentials: "same-origin",
             });
-            if (!saveResp.ok) throw new Error('save failed: ' + saveResp.status);
+            if (!r.ok) throw new Error("presign failed: " + r.status);
+            var j = await r.json();
+            var putUrl = j.url;
+            var key = j.key;
+            setHint("Uploading to S3...");
+            var putResp = await fetch(putUrl, {
+              method: "PUT",
+              headers: { "Content-Type": f.type },
+              body: f,
+            });
+            if (!putResp.ok)
+              throw new Error("upload failed: " + putResp.status);
+            setHint("Finalizing...");
+            var saveEndpoint =
+              "{% url 'posts-set-image' hashed_email=user.hashed_email %}";
+            var csrf =
+              document.querySelector("input[name=csrfmiddlewaretoken]") &&
+              document.querySelector("input[name=csrfmiddlewaretoken]").value;
+            var saveResp = await fetch(saveEndpoint, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrf,
+              },
+              credentials: "same-origin",
+              body: JSON.stringify({ key: key }),
+            });
+            if (!saveResp.ok)
+              throw new Error("save failed: " + saveResp.status);
             var saved = await saveResp.json();
             // Attach hidden input with image_key
-            var existing = form.querySelector('input[name=image_key]');
+            var existing = form.querySelector("input[name=image_key]");
             if (existing) existing.value = saved.key;
-            else { var hidden = document.createElement('input'); hidden.type='hidden'; hidden.name='image_key'; hidden.value=saved.key; form.appendChild(hidden); }
-            setHint('Image uploaded. You can now post.');
+            else {
+              var hidden = document.createElement("input");
+              hidden.type = "hidden";
+              hidden.name = "image_key";
+              hidden.value = saved.key;
+              form.appendChild(hidden);
+            }
+            setHint("Image uploaded. You can now post.");
             submitBtn.disabled = false;
           } catch (ex) {
-            console.error(ex); alert('Upload failed: ' + (ex.message || ex));
-            setHint('Upload failed.');
+            console.error(ex);
+            alert("Upload failed: " + (ex.message || ex));
+            setHint("Upload failed.");
             uploadBtn.disabled = false;
           }
         });
 
         // keep submit disabled unless image_key present (safety)
-        form.addEventListener('submit', function(evt){
-          var hidden = form.querySelector('input[name=image_key]');
+        form.addEventListener("submit", function (evt) {
+          var hidden = form.querySelector("input[name=image_key]");
           if (!hidden || !hidden.value) {
             evt.preventDefault();
-            alert('Please upload an image before posting.');
+            alert("Please upload an image before posting.");
             return false;
           }
         });
       });
     })();
-    </script>
+  </script>
   {% elif user %}
-    <div class="section-card text-danger">You are banned and cannot post.</div>
+  <div class="section-card text-danger">You are banned and cannot post.</div>
   {% else %}
-    <div class="section-card">
-      <p class="mb-1">Sign in to make a post.</p>
-      <a class="btn btn-primary btn-sm" href="/login/">Sign in</a>
-    </div>
+  <div class="section-card">
+    <p class="mb-1">Sign in to make a post.</p>
+    <a class="btn btn-primary btn-sm" href="/login/">Sign in</a>
+  </div>
   {% endif %}
 
   <div class="section-card">
     <div class="section-heading mb-3">Recent Posts</div>
     <form method="get" action="" class="mb-3">
-        <label for="query">
-            <input type="text" name="query" value="{{ query }}" placeholder="Search by tag..." />
-        </label>
-        <button class="btn btn-primary" type="submit">Search</button>
+      <label for="query">
+        <input
+          type="text"
+          name="query"
+          value="{{ query }}"
+          placeholder="Search by tag..."
+        />
+      </label>
+      <button class="btn btn-primary" type="submit">Search</button>
     </form>
     {% if not user %}
-        <div style="text-align: center; padding-bottom: 1em">Some posts may not be visible for Guest users.</div>
+    <div style="text-align: center; padding-bottom: 1em">
+      Some posts may not be visible for Guest users.
+    </div>
     {% endif %}
     <div class="posts-grid">
-    {% for post in posts %}
-        {% if user or not post.author.is_private %}
-          <div class="post-card scrollable">
-            <div class="post-header">
-              <div class="post-title">{{ post.title|default_if_none:"Unnamed Item"|default:"Unnamed Item" }}</div>
-              <div class="post-author">by <a href="/users/{{ post.author.hashed_email }}">{{ post.author.nickname }}</a></div>
-            </div>
-            {% if post.image %}
-            <img src="{% url 'post-image' post.id %}" alt="Post image" class="post-image" />
-            {% endif %}
-            <p class="post-body">{{ post.content }}</p>
-            <p class="post-location"><strong>Pickup:</strong> {{ post.location|default_if_none:"Location not provided"|default:"Location not provided" }}</p>
-            <a class="btn btn-secondary message-button" href="{% url 'messaging:chat' post.author.email %}">Message User</a>
-            <div class="post-actions">
-              <small>Posted on {{ post.created_at }}</small>
-              {% if current_user and current_user != post.author %}
-                <button class="flag-btn {% if post.is_flagged_by_current_user %}flagged{% endif %}"
-                        data-post-id="{{ post.id }}"
-                        onclick="toggleFlag({{ post.id }}, this)"
-                        title="{% if post.is_flagged_by_current_user %}Remove flag{% else %}Flag post{% endif %}">
-                  <span class="flag-icon"></span>
-                </button>
-                <span class="flag-count" id="flag-count-{{ post.id }}">
-                  {% if post.flag_count > 0 %}{{ post.flag_count }}{% endif %}
-                </span>
-              {% endif %}
-            </div>
-            {% if post.tags.all %}
-              <button id="toggleTags" class="text-muted small btn btn-sm">Click to expand tags</button>
-              <div id="postTags" style="display: none;">
-                {% for tag in post.tags.all %}
-                  <span class="badge bg-secondary">{{ tag.name }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              <span class="text-muted small" style="margin: 0 auto;">No tags</span>
-            {% endif %}
+      {% for post in posts %} {% if user or not post.author.is_private %}
+      <div class="post-card scrollable">
+        <div class="post-header">
+          <div class="post-title">
+            {{ post.title|default_if_none:"Unnamed Item"|default:"Unnamed Item"
+            }}
           </div>
+          <div class="post-author">
+            by
+            <a href="/users/{{ post.author.hashed_email }}"
+              >{{ post.author.nickname }}</a
+            >
+          </div>
+        </div>
+        {% if post.image %}
+        <img
+          src="{% url 'post-image' post.id %}"
+          alt="Post image"
+          class="post-image"
+        />
         {% endif %}
-    {% empty %}
-      <p>No posts yet {% if query %} for "{{ query }}"{% endif %}. Be the first to post something!</p>
-    {% endfor %}
+        <p class="post-body">{{ post.content }}</p>
+        <p class="post-location">
+          <strong>Pickup:</strong> {{ post.location|default_if_none:"Location
+          not provided"|default:"Location not provided" }}
+        </p>
+        <a
+          class="btn btn-secondary message-button"
+          href="{% url 'messaging:chat' post.author.email %}"
+          >Message User</a
+        >
+        <div class="post-actions">
+          <small>Posted on {{ post.created_at }}</small>
+          {% if current_user %}
+          <button
+            class="bookmark-btn {% if post.is_bookmarked_by_current_user %}bookmarked{% endif %}"
+            data-post-id="{{ post.id }}"
+            onclick="toggleBookmark({{ post.id }}, this)"
+            title="{% if post.is_bookmarked_by_current_user %}Remove bookmark{% else %}Save post{% endif %}"
+          >
+            &#9733;
+          </button>
+          {% endif %} {% if current_user and current_user != post.author %}
+          <button
+            class="flag-btn {% if post.is_flagged_by_current_user %}flagged{% endif %}"
+            data-post-id="{{ post.id }}"
+            onclick="toggleFlag({{ post.id }}, this)"
+            title="{% if post.is_flagged_by_current_user %}Remove flag{% else %}Flag post{% endif %}"
+          >
+            <span class="flag-icon"></span>
+          </button>
+          <span class="flag-count" id="flag-count-{{ post.id }}">
+            {% if post.flag_count > 0 %}{{ post.flag_count }}{% endif %}
+          </span>
+          {% endif %}
+        </div>
+        {% if post.tags.all %}
+        <button id="toggleTags" class="text-muted small btn btn-sm">
+          Click to expand tags
+        </button>
+        <div id="postTags" style="display: none">
+          {% for tag in post.tags.all %}
+          <span class="badge bg-secondary">{{ tag.name }}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <span class="text-muted small" style="margin: 0 auto">No tags</span>
+        {% endif %}
+      </div>
+      {% endif %} {% empty %}
+      <p>
+        No posts yet {% if query %} for "{{ query }}"{% endif %}. Be the first
+        to post something!
+      </p>
+      {% endfor %}
     </div>
   </div>
 
-    <script>
-      document.getElementById('toggleTags').addEventListener('click', function() {
-        const tagsDiv = document.getElementById('postTags');
-        if (tagsDiv.style.display === 'none') {
-          tagsDiv.style.display = 'block';
-          this.textContent = 'Hide tags';
+  <script>
+    document
+      .getElementById("toggleTags")
+      .addEventListener("click", function () {
+        const tagsDiv = document.getElementById("postTags");
+        if (tagsDiv.style.display === "none") {
+          tagsDiv.style.display = "block";
+          this.textContent = "Hide tags";
         } else {
-          tagsDiv.style.display = 'none';
-          this.textContent = 'Click to expand tags';
+          tagsDiv.style.display = "none";
+          this.textContent = "Click to expand tags";
         }
       });
-    </script>
+  </script>
 
   <script>
-  function toggleFlag(postId, buttonElement) {
-    fetch(`/posts/flag/${postId}/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        // Toggle button appearance
-        if (data.is_flagged) {
-          buttonElement.classList.add('flagged');
-          buttonElement.title = 'Remove flag';
-        } else {
-          buttonElement.classList.remove('flagged');
-          buttonElement.title = 'Flag post';
-        }
+    function getCsrfToken() {
+      const el = document.querySelector("[name=csrfmiddlewaretoken]");
+      if (el) return el.value;
+      const match = document.cookie.match(/csrftoken=([^;]+)/);
+      return match ? match[1] : "";
+    }
 
-        // Update flag count
-        const flagCountElement = document.getElementById(`flag-count-${postId}`);
-        if (data.flag_count > 0) {
-          flagCountElement.textContent = data.flag_count;
-        } else {
-          flagCountElement.textContent = '';
-        }
-      } else {
-        alert(data.error || 'An error occurred');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('An error occurred while flagging the post');
-    });
-  }
+    function toggleBookmark(postId, buttonElement) {
+      fetch(`/posts/bookmark/${postId}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            if (data.is_bookmarked) {
+              buttonElement.classList.add("bookmarked");
+              buttonElement.title = "Remove bookmark";
+            } else {
+              buttonElement.classList.remove("bookmarked");
+              buttonElement.title = "Save post";
+            }
+          } else {
+            alert(data.error || "An error occurred");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("An error occurred while bookmarking the post");
+        });
+    }
+
+    function toggleFlag(postId, buttonElement) {
+      fetch(`/posts/flag/${postId}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            // Toggle button appearance
+            if (data.is_flagged) {
+              buttonElement.classList.add("flagged");
+              buttonElement.title = "Remove flag";
+            } else {
+              buttonElement.classList.remove("flagged");
+              buttonElement.title = "Flag post";
+            }
+
+            // Update flag count
+            const flagCountElement = document.getElementById(
+              `flag-count-${postId}`
+            );
+            if (data.flag_count > 0) {
+              flagCountElement.textContent = data.flag_count;
+            } else {
+              flagCountElement.textContent = "";
+            }
+          } else {
+            alert(data.error || "An error occurred");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("An error occurred while flagging the post");
+        });
+    }
   </script>
-{% endblock %}
+  {% endblock %}
 </div>
