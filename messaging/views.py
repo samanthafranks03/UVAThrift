@@ -167,6 +167,16 @@ def send_group_message(request: HttpRequest, group_id: int) -> HttpResponse:
     if content:
         models.GroupMessage.objects.create(group=group, author=user, content=content)
 
+        # Create notifications for all group members except the sender
+        for member in group.members.all():
+            if member != user: 
+                message = Messaging.objects.create(
+                    author=user,
+                    recipient=member,
+                    content=f"[Group: {group.name}] {content}"
+                )
+                Notification.objects.create(recipient=member, message=message)
+
     return redirect("messaging:group-chat", group_id=group.id)
 
 def start_chat(request: HttpRequest) -> HttpResponse:
