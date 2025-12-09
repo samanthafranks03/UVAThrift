@@ -97,14 +97,17 @@
     <!-- Walkthrough JavaScript -->
     <script src="{% static 'a2_market/walkthrough.js' %}"></script>
     <script>
-      // Auto-start walkthrough for new users
-      {% if show_walkthrough %}
+      // Check if walkthrough should be triggered (via URL parameter)
       document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-          startWalkthrough();
-        }, 500);
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('start_walkthrough') === 'true') {
+          setTimeout(function() {
+            startWalkthrough();
+          }, 500);
+          // Clean up URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
       });
-      {% endif %}
     </script>
   </body>
 </html>
