@@ -41,6 +41,13 @@
               class="nav-item nav-link {% if request.resolver_match.url_name == 'home' or '/market' in request.path %}current-page{% endif %}"
               >Browse</a
             >
+            {% if request.session.user_data %}
+            <a
+              href="{% url 'bookmarks_list' %}"
+              class="nav-item nav-link {% if '/posts/bookmarks' in request.path %}current-page{% endif %}"
+              >Bookmarks</a
+            >
+            {% endif %}
             <a
               href="/about"
               class="nav-item nav-link {% if '/about' in request.path %}current-page{% endif %}"

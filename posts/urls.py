@@ -13,6 +13,9 @@ urlpatterns = [
     path('<int:post_id>/image/', views.post_image, name='post-image'),
     path('flag/<int:post_id>/', views.toggle_flag, name='toggle_flag'),
     path('status/<int:post_id>/', views.toggle_post_status, name='toggle_post_status'),
+
+    path('bookmark/<int:post_id>/', views.toggle_bookmark, name='toggle_bookmark'),
+    path('bookmarks/', views.bookmarks_list, name='bookmarks_list'),
     # Admin URLs
     path('admin/flagged/', views.admin_flagged_posts, name='admin_flagged_posts'),
     path('admin/flagged-api/', views.admin_flagged_posts_api, name='admin_flagged_posts_api'),

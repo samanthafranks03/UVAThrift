@@ -1,6 +1,7 @@
 from django.db import models
 
 from taggit.managers import TaggableManager
+from django.utils import timezone
 
 class Post(models.Model):
     STATUS_CHOICES = [
@@ -45,6 +46,12 @@ class Post(models.Model):
     def is_active(self):
         return self.status == "active"
 
+    def bookmark_count(self):
+        return self.bookmark_set.count()
+
+    def is_bookmarked_by_user(self, user):
+        return self.bookmark_set.filter(user=user).exists()
+
 
 class PostFlag(models.Model):
     #Model to track which users have flagged which posts
@@ -57,3 +64,16 @@ class PostFlag(models.Model):
         
     def __str__(self):
         return f"{self.user.email} flagged post {self.post.id}"
+
+
+class Bookmark(models.Model):
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('user', 'post')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.email} bookmarked post {self.post.id}"
