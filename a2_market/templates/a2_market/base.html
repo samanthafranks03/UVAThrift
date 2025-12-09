@@ -100,11 +100,21 @@
       // Auto-start walkthrough for new users
       {% if show_walkthrough %}
       document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-          startWalkthrough();
-        }, 500);
+        // Only show walkthrough once per session
+        if (!sessionStorage.getItem('walkthroughShown')) {
+          sessionStorage.setItem('walkthroughShown', 'true');
+          setTimeout(function() {
+            startWalkthrough();
+          }, 500);
+        }
       });
       {% endif %}
+      
+      // Function to manually restart walkthrough (clears session flag)
+      function restartWalkthroughManually() {
+        sessionStorage.removeItem('walkthroughShown');
+        window.location.href = '/users/reset-walkthrough/';
+      }
     </script>
   </body>
 </html>
