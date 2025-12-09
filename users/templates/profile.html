@@ -151,7 +151,7 @@ Use: Adding delete account button and functionality to user profile page -->
         {% if request.session.user_data.email == user.email %}
           <p>
             <a href="/users/{{ user.hashed_email }}/edit" class="btn btn-secondary">Edit Profile</a>
-            <button onclick="window.location.href='/market'; setTimeout(function() { startWalkthrough(); }, 500);" class="btn btn-info">Restart Walkthrough</button>
+            <a href="{% url 'reset-walkthrough' %}" class="btn btn-info">🎓 Restart Walkthrough</a>
           </p>
         {% endif %}
 

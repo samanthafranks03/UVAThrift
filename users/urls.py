@@ -30,4 +30,5 @@ urlpatterns = [
     path("admin/ban-and-delete/<int:post_id>/", views.admin_ban_and_delete_panel, name="admin_ban_and_delete_panel"),
     # Walkthrough
     path("complete-walkthrough/", views.complete_walkthrough, name="complete-walkthrough"),
+    path("reset-walkthrough/", views.reset_walkthrough, name="reset-walkthrough"),
 ]
