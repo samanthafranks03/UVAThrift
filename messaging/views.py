@@ -153,8 +153,7 @@ def start_chat(request: HttpRequest) -> HttpResponse:
 
     search_query = request.GET.get("search", "").strip()
     
-    # Sync ProfileUsers to DjangoUsers - this ensures all users from the posts app
-    # are available in the messaging system
+    # Sync ProfileUsers to DjangoUsers - makes sure all users from the posts app are available in the messaging system
     profile_users = ProfileUser.objects.all()
     for profile_user in profile_users:
         DjangoUser.objects.get_or_create(
@@ -162,7 +161,7 @@ def start_chat(request: HttpRequest) -> HttpResponse:
             defaults={'email': profile_user.email}
         )
     
-    # Now get all DjangoUsers except the current user
+    # Get all DjangoUsers except the current user
     users = DjangoUser.objects.exclude(id=user.id)
     if search_query:
         users = users.filter(username__icontains=search_query)
