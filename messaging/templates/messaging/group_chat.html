@@ -29,6 +29,14 @@
     z-index: 2;
   }
 
+  .chat-messages {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
   .back-button {
     background: none;
     border: none;
@@ -52,20 +60,11 @@
     text-align: center;
   }
 
-  /* Messages */
-
-  .chat-messages {
-    flex-grow: 1;
-    padding: 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
 
   .message {
     max-width: 70%;
     margin-bottom: 10px;
-    padding: 8px 14px;
+    padding: 10px 14px;
     border-radius: 18px;
     font-size: 15px;
     line-height: 1.4;
@@ -162,6 +161,7 @@
   </div>
 
   <!-- Messages -->
+  <div class="chat-messages" id="chatBox">
     {% for msg in messages %}
     <div class="message {% if msg.author.username == request.session.user_data.email %}sent{% else %}received{% endif %}">
       <div class="message-author">
