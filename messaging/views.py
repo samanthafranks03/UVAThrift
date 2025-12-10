@@ -7,6 +7,10 @@ from django.db.models import Q
 from .models import Messaging, Notification, Group, GroupMessage
 from users.models import User as ProfileUser
 
+# Source / AI Citation
+# Description: Help integrating the base Django user model and our custom user model as different team members went about implementation differently
+# AI Source: Generated with Claude 
+
 def get_display_name(django_user):
     # Get the nickname if set, otherwise name from Google Account
     try:
