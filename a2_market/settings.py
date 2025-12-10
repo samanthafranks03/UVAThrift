@@ -58,7 +58,7 @@ SECRET_KEY = os.getenv(
 )
 
 # DEBUG from env (defaults True for local dev)
-DEBUG = os.getenv("DEBUG", "False").lower() == "false"
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 # Hosts / CSRF (configure these on Heroku if you want to restrict)
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
