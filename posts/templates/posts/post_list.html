@@ -164,12 +164,11 @@ Use: Adding image display for posts with presigned S3 URLs -->
   ></textarea>
   <br />
   <label for="id_image">Attach image (required)</label>
-  <input type="file" name="image" id="id_image" accept="image/*" />
+  <input type="file" name="image" id="id_image" accept="image/*" required />
   <br />
-  <small id="image-hint" style="color:#666;">You must attach an image before posting.</small>
+  <small id="image-hint" style="color:#666;"></small>
   <br />
-  <button type="button" id="upload-image-btn" class="btn btn-secondary">Upload picture</button>
-  <button type="submit" id="submit-post-btn" class="btn btn-primary" disabled>Post</button>
+  <button type="submit" id="submit-post-btn" class="btn btn-primary">Post</button>
 </form>
   <script>
   // Direct-to-S3 upload flow for posts (presign -> PUT -> notify server)
@@ -178,16 +177,17 @@ Use: Adding image display for posts with presigned S3 URLs -->
       var form = document.getElementById('create-post-form');
       if (!form) return;
       var fileInput = document.getElementById('id_image');
-      var uploadBtn = document.getElementById('upload-image-btn');
       var submitBtn = document.getElementById('submit-post-btn');
       var hint = document.getElementById('image-hint');
 
       function setHint(msg){ if(hint) hint.textContent = msg; }
 
-      uploadBtn.addEventListener('click', async function(){
+      form.addEventListener('submit', async function(evt){
+        evt.preventDefault();
         var f = fileInput && fileInput.files && fileInput.files[0];
-        if (!f) { alert('Please choose a file first.'); return; }
-        uploadBtn.disabled = true; setHint('Requesting upload URL...');
+        if (!f) { alert('Please choose an image file.'); return; }
+        
+        submitBtn.disabled = true; setHint('Uploading...');
         try {
           var signEndpoint = "{% url 'posts-s3-presign' hashed_email=request.session.user_data.hashed_email %}";
           var q = '?filename=' + encodeURIComponent(f.name) + '&content_type=' + encodeURIComponent(f.type || 'application/octet-stream');
@@ -195,10 +195,8 @@ Use: Adding image display for posts with presigned S3 URLs -->
           if (!r.ok) throw new Error('presign failed: ' + r.status);
           var j = await r.json();
           var putUrl = j.url; var key = j.key;
-          setHint('Uploading to S3...');
           var putResp = await fetch(putUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: f });
           if (!putResp.ok) throw new Error('upload failed: ' + putResp.status);
-          setHint('Finalizing...');
           var saveEndpoint = "{% url 'posts-set-image' hashed_email=request.session.user_data.hashed_email %}";
           var csrf = document.querySelector('input[name=csrfmiddlewaretoken]') && document.querySelector('input[name=csrfmiddlewaretoken]').value;
           var saveResp = await fetch(saveEndpoint, {
@@ -209,26 +207,12 @@ Use: Adding image display for posts with presigned S3 URLs -->
           });
           if (!saveResp.ok) throw new Error('save failed: ' + saveResp.status);
           var saved = await saveResp.json();
-          // Attach hidden input with image_key
-          var existing = form.querySelector('input[name=image_key]');
-          if (existing) existing.value = saved.key;
-          else { var hidden = document.createElement('input'); hidden.type='hidden'; hidden.name='image_key'; hidden.value=saved.key; form.appendChild(hidden); }
-          setHint('Image uploaded. You can now post.');
-          submitBtn.disabled = false;
+          var hidden = document.createElement('input'); hidden.type='hidden'; hidden.name='image_key'; hidden.value=saved.key; form.appendChild(hidden);
+          form.submit();
         } catch (ex) {
           console.error(ex); alert('Upload failed: ' + (ex.message || ex));
           setHint('Upload failed.');
-          uploadBtn.disabled = false;
-        }
-      });
-
-      // keep submit disabled unless image_key present (safety)
-      form.addEventListener('submit', function(evt){
-        var hidden = form.querySelector('input[name=image_key]');
-        if (!hidden || !hidden.value) {
-          evt.preventDefault();
-          alert('Please upload an image before posting.');
-          return false;
+          submitBtn.disabled = false;
         }
       });
     });
